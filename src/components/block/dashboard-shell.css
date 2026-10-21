@@ -55,8 +55,8 @@
   --obsidian-dashboard-shell-text-subtle: #808080;
   --obsidian-dashboard-shell-icon: #f9fbff;
   --obsidian-dashboard-shell-hover: rgb(255 255 255 / 0.045);
-  --obsidian-dashboard-shell-accent: #3b82f6;
-  --obsidian-dashboard-shell-accent-hover: #60a5fa;
+  --obsidian-dashboard-shell-accent: #2563eb;
+  --obsidian-dashboard-shell-accent-hover: #3b82f6;
   --obsidian-dashboard-shell-accent-foreground: #ffffff;
   --obsidian-dashboard-shell-success: #22c55e;
   --obsidian-dashboard-shell-warning: #fbbf24;
@@ -67,7 +67,7 @@
   --obsidian-dashboard-shell-remove-border: #713333;
   --obsidian-dashboard-shell-ring: #676767;
   --obsidian-dashboard-shell-control-shadow: 0 0 0 1px rgb(0 0 0 / 0.4), inset 0 1px 0 rgb(255 255 255 / 0.1), inset 0 0 0 1px rgb(255 255 255 / 0.06);
-  --obsidian-dashboard-shell-accent-shadow: 0 4px 10px rgb(30 64 175 / 0.3), 0 0 0 1px #1d4ed8, inset 0 4px 6px rgb(255 255 255 / 0.18),
+  --obsidian-dashboard-shell-accent-shadow: 0 2px 4px rgb(37 99 235 / 0.24), 0 0 0 1px #1d4ed8, inset 0 4px 6px rgb(255 255 255 / 0.2),
     inset 0 0 0 1px rgb(255 255 255 / 0.15), inset 0 -8px 14px rgb(0 0 0 / 0.15);
   --obsidian-dashboard-shell-menu: rgb(30 30 30 / 0.78);
   --obsidian-dashboard-shell-menu-highlight: rgb(255 255 255 / 0.07);
