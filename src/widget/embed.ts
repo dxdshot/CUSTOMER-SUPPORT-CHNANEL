@@ -5,14 +5,14 @@
  *           data-site="site_abc123" data-api="https://your-host/api/widget"
  *           data-color="#2563eb" data-name="Dhimant" data-email="hi@dhimant.dev"></script>
  *
- * Attributes, all optional:
- *   data-site      site key from the dashboard (required for the backend;
- *                  without it messages stay in this browser tab)
+ * Attributes (data-site is required):
+ *   data-site      site key from the dashboard
  *   data-api       backend base URL (defaults to <script-origin>/api/widget)
  *   data-color     accent colour for the launcher, header, send button and bubbles
  *   data-asset     artwork URL (defaults to textbox-160.png next to this script)
  *   data-title     panel title
  *   data-subtitle  panel subtitle
+ *   data-style-nonce  CSP nonce for the injected stylesheet (defaults to this script's nonce)
  *   data-name      visitor name (skips the inline identity prompt)
  *   data-email     visitor email (skips the inline identity prompt)
  *
@@ -30,11 +30,15 @@
   // on the same origin. data-api only needs setting for split hosting.
   const api = (data.api ?? new URL("/api/widget", base).href).replace(/\/$/, "");
   const site = (data.site ?? "").trim();
+  if (!site) {
+    console.error("[chat-platform] data-site is required to connect the widget to support.");
+    return;
+  }
   // Keep in sync with src/widget/version.ts. Asset releases refresh the module
   // without erasing a visitor's conversation. Storage changes only when the
   // persisted data shape is no longer compatible.
   const WIDGET_RELEASE = {
-    assets: "2026-10-21.3",
+    assets: "2026-10-22.1",
     storage: "2026-10-20.5",
   } as const;
   const STORAGE_VERSION_KEY = "chat-platform:widget-version";
@@ -54,11 +58,6 @@
         }
       }
       for (const key of stale) window.localStorage.removeItem(key);
-      try {
-        window.sessionStorage.removeItem("chat-platform:widget-messages");
-      } catch {
-        // Private mode or blocked storage: nothing to clear.
-      }
       window.localStorage.setItem(STORAGE_VERSION_KEY, WIDGET_RELEASE.storage);
     }
   } catch {
@@ -103,27 +102,49 @@
 
   const IDENTITY_KEY = "chat-platform:identity";
 
-  /** Visitor identity: localStorage, seeded by data-name/data-email. */
-  const readIdentity = (): Identity => {
+  const storedIdentity = (): Identity => {
     try {
       const raw = window.localStorage.getItem(IDENTITY_KEY);
       if (raw) {
-        const parsed = JSON.parse(raw) as Partial<Identity>;
-        return { name: parsed.name ?? "", email: parsed.email ?? "" };
+        const parsed: unknown = JSON.parse(raw);
+        if (parsed && typeof parsed === "object") {
+          return {
+            name: "name" in parsed && typeof parsed.name === "string" ? parsed.name : "",
+            email: "email" in parsed && typeof parsed.email === "string" ? parsed.email : "",
+          };
+        }
       }
     } catch {
-      // Private mode: fall through to the script attributes.
+      // Private mode or an invalid old value: use an empty identity.
     }
-    return { name: (data.name ?? "").trim(), email: (data.email ?? "").trim() };
+    return { name: "", email: "" };
   };
+  const previousIdentity = storedIdentity();
+  const hasHostName = Object.prototype.hasOwnProperty.call(data, "name");
+  const hasHostEmail = Object.prototype.hasOwnProperty.call(data, "email");
+  const hasHostIdentity = hasHostName || hasHostEmail;
+  const hostName = (data.name ?? "").trim();
+  const hostEmail = (data.email ?? "").trim();
+  const hostChangedVisitor = hasHostIdentity &&
+    (previousIdentity.name !== "" || previousIdentity.email !== "") &&
+    ((hasHostName && previousIdentity.name !== hostName) ||
+      (hasHostEmail && previousIdentity.email !== hostEmail));
+  const hostIdentity: Identity = {
+    name: hasHostName ? hostName : hostChangedVisitor ? "" : previousIdentity.name,
+    email: hasHostEmail ? hostEmail : hostChangedVisitor ? "" : previousIdentity.email,
+  };
+  let identity = hasHostIdentity ? hostIdentity : previousIdentity;
+  const readIdentity = () => identity;
 
   const saveIdentity = (name: string, email: string) => {
+    identity = { name, email };
     try {
-      window.localStorage.setItem(IDENTITY_KEY, JSON.stringify({ name, email }));
+      window.localStorage.setItem(IDENTITY_KEY, JSON.stringify(identity));
     } catch {
       // Identity is a nicety; the chat still works without persistence.
     }
   };
+  if (hasHostIdentity) saveIdentity(hostIdentity.name, hostIdentity.email);
 
   /**
    * Programmatic identify hook for host apps:
@@ -137,50 +158,18 @@
     saveIdentity(name, email);
   };
 
-  /** Without a backend, messages persist in this tab so the widget still feels real. */
-  const localTransport = () => {
-    const key = "chat-platform:widget-messages";
-    const read = (): Message[] => {
-      try {
-        const raw = window.sessionStorage.getItem(key);
-        return raw ? (JSON.parse(raw) as Message[]) : [];
-      } catch {
-        return [];
-      }
-    };
-    const write = (messages: Message[]) => {
-      try {
-        window.sessionStorage.setItem(key, JSON.stringify(messages));
-      } catch {
-        // Private mode or a full quota: the widget still works for this page view.
-      }
-    };
-    return {
-      async load() {
-        return read();
-      },
-      async send(message: { id: string; body: string; attachment?: Attachment }) {
-        const accepted: Message = {
-          id: message.id,
-          author: "visitor",
-          body: message.body,
-          createdAt: new Date().toISOString(),
-          attachment: message.attachment,
-        };
-        write([...read(), accepted]);
-        return accepted;
-      },
-    };
-  };
-
   /*
-   * Anonymous visitor id, stable across tabs and reloads (unlike the tab-scoped
-   * sessionStorage messages below). No login: this is how the dashboard knows
-   * which conversation a message belongs to.
+   * Anonymous visitor id, stable across tabs and reloads. A host-provided
+   * account switch starts a new conversation so the next visitor cannot see
+   * the previous account's messages on a shared browser.
    */
   const visitorId = (() => {
     const key = "chat-platform:visitor-id";
     try {
+      if (hostChangedVisitor) {
+        window.localStorage.removeItem(key);
+        window.localStorage.removeItem(`${WELCOME_SEEN_PREFIX}${site}`);
+      }
       const existing = window.localStorage.getItem(key);
       if (existing) return existing;
       const fresh =
@@ -235,9 +224,12 @@
       os,
       device,
       timezone,
-      page: `${window.location.pathname}${window.location.search}`,
     };
   })();
+  const currentVisitorContext = () => ({
+    ...visitorContext,
+    page: `${window.location.pathname}${window.location.search}`,
+  });
 
   const apiTransport = (baseUrl: string, siteKey: string, visitor: string) => {
     const seen = new Set<string>();
@@ -328,7 +320,7 @@
             body: message.body,
             attachment: message.attachment,
             identity: readIdentity(),
-            context: visitorContext,
+            context: currentVisitorContext(),
           }),
           signal,
         });
@@ -341,7 +333,7 @@
         const response = await fetch(`${baseUrl}/messages`, {
           method: "POST", headers: { "content-type": "application/json" },
           body: JSON.stringify({ site: siteKey, visitor, id, body: question, presetQuestion: question,
-            identity: readIdentity(), context: visitorContext }),
+            identity: readIdentity(), context: currentVisitorContext() }),
           signal,
         });
         if (!response.ok) throw new Error(`Could not send preset (${response.status})`);
@@ -492,12 +484,6 @@
     };
   };
 
-  const useBackend = site.length > 0;
-  if (!useBackend) {
-    // No data-site: the demo keeps working tab-local instead of failing.
-    console.warn("[chat-platform] data-site is missing — widget runs without a backend.");
-  }
-
   let pendingSound: (() => void) | null = null;
   const playSound = () => {
     void import(new URL("cuelume/index.js", base).href)
@@ -537,8 +523,9 @@
     title: data.title || undefined,
     subtitle: data.subtitle || undefined,
     accent: data.color || undefined,
+    styleNonce: data.styleNonce || script.nonce || undefined,
     welcomeStorageKey: site ? `${WELCOME_SEEN_PREFIX}${site}` : undefined,
-    transport: useBackend ? apiTransport(api, site, visitorId) : localTransport(),
+    transport: apiTransport(api, site, visitorId),
     onNotify() {
       // Autoplay policy: before the first gesture the audio context is
       // suspended. Play now if allowed, otherwise play on the first click/key.
@@ -552,17 +539,28 @@
     },
   };
 
-  // Re-running the snippet (or a new version) replaces the previous widget
-  // instead of stacking another launcher.
-  const globalWindow = window as Window & { chatPlatformWidget?: { destroy?: () => void } };
-  try {
-    globalWindow.chatPlatformWidget?.destroy?.();
-  } catch {
-    // A stale handle from an older embed: fall through to the host sweep.
-  }
-  document.querySelectorAll(".chat-platform-widget").forEach((node) => node.remove());
-
-  void import(new URL(`widget.js?v=${WIDGET_RELEASE.assets}`, base).href).then((module) => {
-    globalWindow.chatPlatformWidget = module.mountChatWidget(options);
-  });
+  // An async script in <head> may finish before <body> exists. A later embed
+  // replaces an earlier pending import as well as an already mounted widget.
+  const globalWindow = window as Window & {
+    chatPlatformWidget?: { destroy?: () => void };
+    chatPlatformBoot?: object;
+  };
+  const boot = {};
+  globalWindow.chatPlatformBoot = boot;
+  const mount = () => {
+    void import(new URL(`widget.js?v=${WIDGET_RELEASE.assets}`, base).href)
+      .then((module) => {
+        if (globalWindow.chatPlatformBoot !== boot) return;
+        try {
+          globalWindow.chatPlatformWidget?.destroy?.();
+        } catch {
+          // A stale handle from an older embed can be removed with its host.
+        }
+        document.querySelectorAll(".chat-platform-widget").forEach((node) => node.remove());
+        globalWindow.chatPlatformWidget = module.mountChatWidget(options);
+      })
+      .catch((error) => console.error("[chat-platform] Could not load the widget module.", error));
+  };
+  if (document.body) mount();
+  else document.addEventListener("DOMContentLoaded", mount, { once: true });
 })();

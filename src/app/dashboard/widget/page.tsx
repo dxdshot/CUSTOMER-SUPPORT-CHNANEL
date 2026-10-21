@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Check, Copy, MessageCircle, RotateCcw } from "lucide-react";
 import { play } from "cuelume";
 import { AppShell } from "@/components/app-shell";
@@ -13,6 +13,9 @@ import { mountChatWidget, type WidgetHandle, type WidgetMessage } from "@/widget
 import { WIDGET_RELEASE } from "@/widget/version";
 import type { PresetReply, WidgetMeta } from "@/widget/types";
 
+const WIDGET_ORIGIN = (process.env.NEXT_PUBLIC_WIDGET_ORIGIN || "https://support-widget-six.vercel.app").replace(/\/+$/, "");
+const escapeAttribute = (value: string) => value.replaceAll("&", "&amp;").replaceAll('"', "&quot;").replaceAll("<", "&lt;");
+
 export default function WidgetPage() {
   const widget = useRef<WidgetHandle | null>(null);
   const previewTarget = useRef<HTMLDivElement>(null);
@@ -23,19 +26,10 @@ export default function WidgetPage() {
   const [loading, setLoading] = useState(false);
   const [reply, setReply] = useState("");
 
-  // Install snippet: the same app serves the widget files and the API, so
-  // origin is enough — paste the result into any customer page.
   const [siteKey, setSiteKey] = useState(DEMO_SITE_KEY);
   const [accent, setAccent] = useState("#2563eb");
   const [copied, setCopied] = useState(false);
-  const [origin] = useState(() =>
-    typeof window === "undefined" ? "" : window.location.origin,
-  );
-  const snippet = useMemo(
-    () =>
-      `<script src="${origin || "https://your-host"}/widget/embed.js?v=${WIDGET_RELEASE.assets}" async\n  data-site="${siteKey}"\n  data-api="${origin || "https://your-host"}/api/widget"\n  data-color="${accent}"></script>`,
-    [origin, siteKey, accent],
-  );
+  const snippet = `<script src="${WIDGET_ORIGIN}/widget/embed.js?v=${WIDGET_RELEASE.assets}" async\n  data-site="${escapeAttribute(siteKey)}"\n  data-color="${accent}"></script>`;
 
   async function copySnippet() {
     try {
@@ -198,7 +192,7 @@ export default function WidgetPage() {
               </label>
             </div>
             <pre className="overflow-x-auto rounded-lg border border-(--obsidian-dashboard-shell-border) bg-black/40 p-3 font-mono text-[11px] leading-relaxed whitespace-pre">{snippet}</pre>
-            <DashboardButton variant="secondary" onClick={() => void copySnippet()}>
+            <DashboardButton variant="secondary" onClick={() => void copySnippet()} disabled={!siteKey}>
               {copied ? <Check aria-hidden /> : <Copy aria-hidden />}{copied ? "Copied" : "Copy snippet"}
             </DashboardButton>
           </div>

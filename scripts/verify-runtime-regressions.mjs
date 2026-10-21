@@ -86,6 +86,7 @@ let requestSignal;
 let requestOptions;
 const document = {
   currentScript: { src: 'https://example.com/widget/embed.js', dataset: { site: 'test' } },
+  body: {},
   visibilityState: 'visible',
   addEventListener: (name, callback) => events.set(name, callback),
   removeEventListener: (name) => events.delete(name),

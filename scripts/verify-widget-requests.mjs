@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 
-const origin = process.argv[2] ?? "http://localhost:3107";
+const origin = process.argv[2] ?? "https://support-widget-six.vercel.app";
 const cases = [
   ["messages", null],
   ["messages", { site: 42, visitor: "audit", id: "audit", body: "test" }],

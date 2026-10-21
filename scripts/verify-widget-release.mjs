@@ -43,10 +43,10 @@ assert.match(
 assert.doesNotMatch(builtWidget, /topline-title/);
 
 const builtStyles = read("public/widget/styles.js");
-assert.match(builtStyles, /--accent-fill:linear-gradient/);
+assert.match(builtStyles, /--accent-fill:var\(--blue\)/);
 assert.match(builtStyles, /\.header\{[^}]*background:var\(--accent-fill\)/);
 assert.match(builtStyles, /\.first-chat\{[^}]*background:var\(--accent-fill\)/);
-assert.match(builtStyles, /\.email-trigger\{[^}]*justify-content:center[^}]*linear-gradient/);
+assert.match(builtStyles, /\.email-trigger\{[^}]*justify-content:center[^}]*background:var\(--blue\)/);
 assert.doesNotMatch(builtStyles, /var\(--warning\)/);
 assert.match(builtStyles, /\.widget\[data-maximized=true\] \.email-trigger\{[^}]*max-width:720px[^}]*margin:0 auto/);
 assert.match(builtStyles, /\.widget\[data-maximized=true\] \.input\{[^}]*min-height:36px[^}]*max-height:120px/);

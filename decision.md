@@ -2019,8 +2019,8 @@ message. A preset question and its `preset-<message id>` automated answer never 
 prompt eligible. Skip only collapses the email card back to its trigger; the prompt stays
 available until a valid email is submitted or returned by conversation metadata.
 
-**Presentation.** The trigger uses a low-saturation indigo gradient derived from the site
-accent. Its label is centered. In maximized mode the trigger and expanded card match the
+**Presentation.** The trigger uses the site accent and centers its label. In maximized
+mode the trigger and expanded card match the
 720px composer width and connect directly to the smaller one-row composer. An empty footer
 wrapper is hidden in history, ended, and past-conversation states, removing the dark strip.
 
@@ -2029,3 +2029,45 @@ wrapper is hidden in history, ended, and past-conversation states, removing the 
 
 **Files.** `src/widget/{widget,styles,embed,version}.ts`,
 `scripts/verify-widget-release.mjs`, `decision.md`, `flow.md`.
+
+---
+
+## D56 — Production embed uses its deployed host and a real support connection
+
+**Evidence.** The deployed host at `https://support-widget-six.vercel.app` serves the
+widget modules with JavaScript MIME types and cross-origin headers. Its widget API accepts
+browser preflight requests and returns site metadata across origins. Those responses
+passed the read-only deployed check before this change.
+
+**Decision.** The dashboard's install snippet uses that HTTPS host by default. Set
+`NEXT_PUBLIC_WIDGET_ORIGIN` at build time to move the widget to another host. The API and
+artwork resolve from the script URL, so the snippet needs no separate API setting. The
+README no longer offers a development-server URL as an install snippet. Integration
+scripts take an explicit API host or use the deployed host.
+
+**Embed behavior.** A missing `data-site` stops before mounting; visitors cannot send a
+message that only exists in their tab. An async script waits for `<body>` before mounting.
+If snippets run twice, the latest one owns the widget. Supplied `data-name` and
+`data-email` take precedence over old stored identity, including empty values after
+sign-out. When a nonempty stored identity changes, a new visitor ID starts a separate
+conversation; the same identity keeps its conversation. An omitted host field keeps a
+previously saved field unless an explicit account switch clears it. `chatPlatformIdentify` can
+update identity later. Each sent message reads
+the current page path, including after SPA navigation.
+The script's CSP nonce, or `data-style-nonce`, passes to the widget stylesheet.
+
+**Limits.** A host's Content Security Policy must allow the widget host in `script-src`
+and `connect-src`, and must allow the stylesheet nonce in `style-src`. No external script
+can run on a page whose policy forbids it.
+
+**Release and proof.** Asset release `2026-10-22.1` loads the new bootstrap without
+clearing compatible visitor state. The embed regression check failed before the fixes
+for missing site, early mount, stale identity, stale SPA page, and a shared-browser
+account switch. It now passes and runs
+inside `pnpm verify:widget`. `pnpm verify:deployed-widget` checks published assets,
+preflight, and read-only metadata without sending a visitor message. The release style
+check now asserts the current shared solid accent instead of an obsolete gradient.
+
+**Files.** `src/widget/{embed,version}.ts`, `src/app/dashboard/widget/page.tsx`,
+`scripts/verify-{widget-embed,deployed-widget,widget-release,runtime-regressions,widget-requests,preset-route}.mjs`,
+`package.json`, `.env.example`, `README.md`, `decision.md`, and `flow.md`.

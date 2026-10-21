@@ -10,7 +10,8 @@ const db = createClient(url, key);
 const siteKey = `preset-check-${randomUUID()}`;
 const visitor = `visitor-${randomUUID()}`;
 const id = `question-${randomUUID()}`;
-const base = process.env.PRESET_TEST_BASE ?? 'http://localhost:4178';
+const base = process.env.PRESET_TEST_BASE;
+if (!base) throw new Error('Set PRESET_TEST_BASE to the API host before running this database test');
 let siteId;
 
 try {

@@ -9,7 +9,8 @@
     "lint": "eslint",
     "test": "node --experimental-strip-types --test src/lib/*.test.ts",
     "build:widget": "tsc -p tsconfig.widget.json && rm -rf public/widget/cuelume && cp -R node_modules/cuelume/dist public/widget/cuelume",
-    "verify:widget": "pnpm build:widget && node scripts/verify-widget-release.mjs && node scripts/verify-runtime-regressions.mjs"
+    "verify:widget": "pnpm build:widget && node scripts/verify-widget-release.mjs && node scripts/verify-runtime-regressions.mjs && node scripts/verify-widget-embed.mjs",
+    "verify:deployed-widget": "node scripts/verify-deployed-widget.mjs"
   },
   "dependencies": {
     "@radix-ui/react-alert-dialog": "^1.2.1",

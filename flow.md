@@ -959,6 +959,38 @@ header no longer hides the status subtitle; it sits below the centered title. Th
 uses an AudioContext probe and `navigator.userActivation`, with one coalesced pending
 play for the first gesture.
 
+---
+
+## 19. D56 deployed cross-site embed
+
+```text
+customer page
+  └─ HTTPS script from support-widget-six.vercel.app, with data-site
+       ├─ no site key → report the setup error; do not mount
+       └─ valid site key → wait for document.body if needed
+            └─ import versioned widget.js → mount one Shadow DOM widget
+                 ├─ stylesheet uses the script nonce or data-style-nonce
+                 ├─ artwork and modules resolve from the script host
+                 └─ HTTP transport defaults to that host's /api/widget
+                      ├─ GET messages and metadata across origins
+                      └─ POST messages and state after browser preflight
+```
+
+The dashboard copies a snippet for the deployed HTTPS host. A build-time
+`NEXT_PUBLIC_WIDGET_ORIGIN` can replace that host. `data-api` remains available only
+when the API lives on a different host. The latest loaded snippet replaces an older
+pending or mounted widget.
+
+The host's `data-name` and `data-email` override an older stored visitor identity;
+explicit empty values clear it after sign-out. A changed, previously nonempty identity
+rotates the visitor ID so another user of the browser cannot reopen that conversation;
+an unchanged identity keeps it. Omitted host fields preserve chat-collected identity
+on reload, but clear when an explicit host field changes to another account.
+`window.chatPlatformIdentify(name, email)` updates it later. Each manual or preset
+message includes the page path at send time, so client-side navigation is reflected in
+the dashboard. The host must permit the widget host in its script and connection CSP
+rules; a stylesheet nonce is needed when inline styles are restricted.
+
 
 
 
