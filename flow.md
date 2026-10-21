@@ -29,7 +29,7 @@ browser
   ├─ /                              → redirect → /dashboard
   │
   ├─ /dashboard                 InboxPage           → AppShell → InboxView
-  ├─ /dashboard/visitors        VisitorsPage        → AppShell → ActiveSessions + sheet
+  ├─ /dashboard/visitors        VisitorsPage        → AppShell → ComingSoon
   ├─ /dashboard/widget          WidgetPage          → AppShell → live widget preview
   ├─ /dashboard/analytics       stub page           → AppShell → ComingSoon
   ├─ /dashboard/canned-responses CannedResponsesPage → AppShell → list + editor
@@ -145,25 +145,10 @@ or Tab drops the matching message in place of the command (D18).
 
 ---
 
-## 5. Live visitors flow (today)
+## 5. Live visitors page (today)
 
-```
-mock-data.liveVisitors  (ActiveSession[])
-        │
-        ▼
-VisitorsPage → ActiveSessions  showActions={false}
-        │
-        ├─ shared clock: re-renders every 30s, and on tab return
-        ├─ "Active now" when last seen < activeWithin (5 min) → ping animation
-        ├─ relative times ("Last active 9 minutes ago") render client-side only
-        ├─ rows carry a country and no IP — nothing that needs a paid lookup (D23)
-        └─ flags: "In a conversation", "New visitor"
-```
-
-`showActions={false}` is the only change to the component (see decision D5). Rows are also
-clickable here: `onSelect` opens the same visitor profile sheet the inbox uses (D22), which
-resolves the row's full profile through `visitorById`. The sheet's identity block is the
-avatar badge, the name and a country chip; email lives in Main information (D23).
+The route currently shows a `ComingSoon` state. Visitor details remain available from
+conversations in the inbox.
 
 ### Widget header
 
@@ -604,7 +589,6 @@ src/
 │  │  └─ response-editor.tsx        create / edit / delete + live preview
 │  ├─ block/
 │  │  ├─ dashboard-shell.tsx/.css   ObsidianUI shell (+ padding pass, D14)
-│  │  └─ active-sessions.tsx/.css   ObsidianUI Active Sessions (+ showActions, D5)
 │  └─ inbox/
 │     ├─ inbox-view.tsx             state + list/thread panes + profile sheet
 │     ├─ conversation-list.tsx      list pane

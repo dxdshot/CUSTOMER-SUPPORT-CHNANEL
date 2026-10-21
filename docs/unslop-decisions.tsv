@@ -1,0 +1,9 @@
+ts	phase	decision	why	evidence	result
+2026-10-21T15:33:19Z	frame	audit three ownership slices before editing	A repository-wide deletion pass needs complete coverage and proof before code changes	docs/unslop-audit.md	baseline framed
+2026-10-21T15:33:19Z	baseline	keep strict unused checks as a completion gate	The compiler can prove unused locals and parameters without guessing	pnpm exec tsc --noEmit --noUnusedLocals --noUnusedParameters	application and widget passed
+2026-10-22	cleanup	delete old visitors component and unused assets	No imports or references reach the files	visitors route and repository-wide reference search	762 source lines and seven assets removed
+2026-10-22	cleanup	make internal symbols private	No external import uses these exports	repository-wide symbol references and strict TypeScript	module APIs narrowed
+2026-10-22	bugfix	normalize conversation status at both database boundaries	Database allows arbitrary text but inbox type allows three values	schema.sql and conversation-status.test.ts	regression passes
+2026-10-22	cleanup	reuse mapped update time	The same timestamp was converted three times during one row mapping	toConversation in src/lib/conversations.ts	numeric age and label share one value
+2026-10-22	retain	keep widget entry points, demo fallback, generated bundle, and menu controls	Each has a runtime or build consumer	build scripts, inbox fallback, dashboard filter menu	no speculative deletion
+2026-10-22	verify	complete release checks	Validate the actual app and widget	16 tests, lint, strict TypeScript, widget verification, production build	all passed; four existing lint warnings

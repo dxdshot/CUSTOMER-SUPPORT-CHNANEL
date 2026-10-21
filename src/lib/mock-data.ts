@@ -1,11 +1,9 @@
-/*
- * Demo data for the inbox. This file is the single seam between the UI and its
- * data: when Supabase lands, these exports are replaced by queries and the
- * components keep their props. Times are pre-formatted strings so server and
- * client render identical markup (no hydration drift).
- */
+/* Demo data used when the inbox has no configured backend. */
 
 export type ConversationStatus = "open" | "pending" | "closed";
+export function conversationStatus(value: unknown, fallback: ConversationStatus = "open"): ConversationStatus {
+  return value === "open" || value === "pending" || value === "closed" ? value : fallback;
+}
 export type MessageAuthor = "visitor" | "agent" | "system";
 
 export type JourneyStep = { id: string; label: string; path: string; at: string };

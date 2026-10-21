@@ -1,22 +1,14 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import {
   currentAgent,
+  conversationStatus,
   type Conversation,
   type ConversationStatus,
   type Message,
 } from "./mock-data";
 import { getSupabase } from "./supabase";
 
-/*
- * Dashboard data layer. Mirrors the mock-data.ts shapes exactly so the inbox
- * components keep their props: seed data is the offline fallback, Supabase
- * rows are mapped into the same Conversation/Message types.
- *
- * Two learnings in one file:
- *   1. fetchConversations / sendAgentMessage / updateConversation — plain REST.
- *   2. subscribeInbox — Postgres Changes pushes new rows; the inbox merges
- *      them by id (same merge-by-id pattern widget.ts uses on reload).
- */
+/* Maps Supabase rows to the inbox model; demo data is the offline fallback. */
 
 export const DEMO_SITE_KEY = "site_demo_001";
 
@@ -111,6 +103,7 @@ function toConversation(
   const sorted = [...messages].sort((a, b) => a.created_at.localeCompare(b.created_at));
   // unread_count is maintained by the messages trigger + mark-read.
   const unread = Math.max(0, row.unread_count ?? 0);
+  const updatedMinutes = minutesSince(row.updated_at);
   const device = row.device === "phone" || row.device === "tablet" || row.device === "laptop"
     ? row.device
     : "desktop";
@@ -136,12 +129,12 @@ function toConversation(
         at: step.at,
       })),
     },
-    status: (row.status as ConversationStatus) ?? "open",
+    status: conversationStatus(row.status),
     assignee: row.assignee ?? null,
     tags: row.tags ?? [],
     unread,
-    updatedMinutes: minutesSince(row.updated_at),
-    updatedLabel: minutesSince(row.updated_at) === 0 ? "now" : `${minutesSince(row.updated_at)}m`,
+    updatedMinutes,
+    updatedLabel: updatedMinutes === 0 ? "now" : `${updatedMinutes}m`,
     lastMessage: row.last_message ?? sorted[sorted.length - 1]?.body ?? "",
     csat: row.csat === "good" || row.csat === "bad" ? row.csat : undefined,
     messages: sorted.map((message) => toMessage(message, row.visitor_last_read_at)),
@@ -329,7 +322,7 @@ export type ConversationPatch = {
 /* Exact-thread presence: who has this conversation open right now. */
 const VIEWER_KEY = "chat-platform:viewer-id";
 
-export function getViewerId(): string {
+function getViewerId(): string {
   if (typeof window === "undefined") return "server";
   try {
     const existing = window.localStorage.getItem(VIEWER_KEY);

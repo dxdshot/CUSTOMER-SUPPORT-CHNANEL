@@ -23,7 +23,7 @@ const RESIZE_STEP = 10;
 /** The sidebar docks beside the content from this container width, in rem. Keep in sync with `@2xl/dashboard-shell`. */
 const DOCKED_SIDEBAR_REM = 42;
 
-export const dashboardButtonVariants = cva(
+const dashboardButtonVariants = cva(
   "inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 whitespace-nowrap rounded-md font-medium leading-none outline-none select-none transition-[background-color,color,box-shadow,scale] duration-150 ease-[cubic-bezier(0.25,1,0.5,1)] active:scale-[0.97] active:duration-75 motion-reduce:transition-none motion-reduce:active:scale-100 focus-visible:ring-2 focus-visible:ring-(--obsidian-dashboard-shell-ring) disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0",
   {
     variants: {
@@ -51,7 +51,7 @@ export const dashboardButtonVariants = cva(
   },
 );
 
-export type DashboardButtonProps = ComponentProps<"button"> & VariantProps<typeof dashboardButtonVariants>;
+type DashboardButtonProps = ComponentProps<"button"> & VariantProps<typeof dashboardButtonVariants>;
 
 export function DashboardButton({ variant, size, className, type = "button", ...props }: DashboardButtonProps) {
   return <button type={type} className={cn(dashboardButtonVariants({ variant, size }), className)} {...props} />;
@@ -103,7 +103,7 @@ function useScopedDark(ref: RefObject<HTMLElement | null>, className?: string) {
   return isDark;
 }
 
-export type DashboardMenuProps = ComponentProps<typeof DropdownMenuPrimitive.Root>;
+type DashboardMenuProps = ComponentProps<typeof DropdownMenuPrimitive.Root>;
 
 export function DashboardMenu({ open, defaultOpen = false, onOpenChange, ...props }: DashboardMenuProps) {
   const [isOpen, setIsOpen] = useControllableState(open, defaultOpen, onOpenChange);
@@ -116,7 +116,7 @@ export function DashboardMenu({ open, defaultOpen = false, onOpenChange, ...prop
 
 export const DashboardMenuTrigger = DropdownMenuPrimitive.Trigger;
 
-export type DashboardMenuContentProps = Omit<ComponentProps<typeof DropdownMenuPrimitive.Content>, "asChild" | "forceMount">;
+type DashboardMenuContentProps = Omit<ComponentProps<typeof DropdownMenuPrimitive.Content>, "asChild" | "forceMount">;
 
 export function DashboardMenuContent({ className, children, sideOffset = 6, ...props }: DashboardMenuContentProps) {
   const isOpen = useContext(LayerOpenContext);
@@ -169,9 +169,9 @@ export function DashboardMenuItem({ className, onFocus, onBlur, ...props }: Comp
   return <DropdownMenuPrimitive.Item className={cn(menuItemClassName, className)} {...focusHandlers} {...props} />;
 }
 
-export const DashboardMenuRadioGroup = DropdownMenuPrimitive.RadioGroup;
+const DashboardMenuRadioGroup = DropdownMenuPrimitive.RadioGroup;
 
-export function DashboardMenuRadioItem({ className, children, onFocus, onBlur, ...props }: ComponentProps<typeof DropdownMenuPrimitive.RadioItem>) {
+function DashboardMenuRadioItem({ className, children, onFocus, onBlur, ...props }: ComponentProps<typeof DropdownMenuPrimitive.RadioItem>) {
   const focusHandlers = useHighlightOnFocus(onFocus, onBlur);
   return (
     <DropdownMenuPrimitive.RadioItem
@@ -191,7 +191,7 @@ export function DashboardMenuSeparator({ className, ...props }: ComponentProps<t
   return <DropdownMenuPrimitive.Separator className={cn("-mx-1 my-1 h-px bg-(--obsidian-dashboard-shell-border)", className)} {...props} />;
 }
 
-export type DashboardPopoverProps = ComponentProps<typeof PopoverPrimitive.Root>;
+type DashboardPopoverProps = ComponentProps<typeof PopoverPrimitive.Root>;
 
 export function DashboardPopover({ open, defaultOpen = false, onOpenChange, ...props }: DashboardPopoverProps) {
   const [isOpen, setIsOpen] = useControllableState(open, defaultOpen, onOpenChange);
@@ -204,7 +204,7 @@ export function DashboardPopover({ open, defaultOpen = false, onOpenChange, ...p
 
 export const DashboardPopoverTrigger = PopoverPrimitive.Trigger;
 
-export type DashboardPopoverContentProps = Omit<ComponentProps<typeof PopoverPrimitive.Content>, "asChild" | "forceMount">;
+type DashboardPopoverContentProps = Omit<ComponentProps<typeof PopoverPrimitive.Content>, "asChild" | "forceMount">;
 
 export function DashboardPopoverContent({ className, children, align = "center", sideOffset = 6, ...props }: DashboardPopoverContentProps) {
   const isOpen = useContext(LayerOpenContext);
@@ -229,7 +229,7 @@ export function DashboardPopoverContent({ className, children, align = "center",
   );
 }
 
-export type DashboardConfirmDialogProps = {
+type DashboardConfirmDialogProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   title: ReactNode;
@@ -309,9 +309,9 @@ export function DashboardConfirmDialog({
   );
 }
 
-export type DashboardFilterOption = { value: string; label: string };
+type DashboardFilterOption = { value: string; label: string };
 
-export type DashboardFilterMenuProps = {
+type DashboardFilterMenuProps = {
   /** Shown before the current value, such as "Sort by". */
   label?: string;
   value: string;
@@ -364,7 +364,7 @@ export function DashboardFilterMenu({ label, value, options, onValueChange, alig
 // Duo icons ship their own bundled SVG prop types, so accept any element type rather than a narrow props shape.
 type NavIcon = ElementType;
 
-export type DashboardShellNavItem = {
+type DashboardShellNavItem = {
   id: string;
   label: string;
   /** A duo-icons or lucide icon, or any component that accepts `className`. */
@@ -386,7 +386,7 @@ export type DashboardShellTab = { value: string; label: string };
 
 export type DashboardShellStatusTone = "success" | "warning" | "neutral";
 
-export type DashboardShellProps = Omit<ComponentProps<"div">, "title" | "children" | "ref"> & {
+type DashboardShellProps = Omit<ComponentProps<"div">, "title" | "children" | "ref"> & {
   brand: { name: string; description?: string; logo?: ReactNode };
   navigation: DashboardShellNavSection[];
   /** Low-emphasis items pinned under the navigation, such as Invite or Help. */

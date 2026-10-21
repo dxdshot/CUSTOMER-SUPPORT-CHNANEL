@@ -7,19 +7,17 @@ import { cannedResponses as seed, type CannedResponse } from "./mock-data";
  * Canned responses: one store shared by the editor page and the inbox composer.
  * It is mirrored to localStorage, so a response you create or edit survives a
  * reload — without that, leaving the page silently reverted the list to the seed.
- * Supabase replaces this module with a table (see decision.md D13 and D17).
  */
 const STORAGE_KEY = "chat-platform:canned-responses";
 
 const isCannedResponse = (value: unknown): value is CannedResponse => {
-  const item = value as CannedResponse | null;
+  if (!value || typeof value !== "object") return false;
   return (
-    !!item &&
-    typeof item.id === "string" &&
-    typeof item.shortcut === "string" &&
-    typeof item.title === "string" &&
-    typeof item.body === "string" &&
-    typeof item.usedCount === "number"
+    "id" in value && typeof value.id === "string" &&
+    "shortcut" in value && typeof value.shortcut === "string" &&
+    "title" in value && typeof value.title === "string" &&
+    "body" in value && typeof value.body === "string" &&
+    "usedCount" in value && typeof value.usedCount === "number"
   );
 };
 
@@ -41,11 +39,11 @@ let responses: CannedResponse[] = typeof window === "undefined" ? seed : (readSt
 
 const listeners = new Set<() => void>();
 
-export function getCannedResponses(): CannedResponse[] {
+function getCannedResponses(): CannedResponse[] {
   return responses;
 }
 
-export function saveCannedResponses(next: CannedResponse[]) {
+function saveCannedResponses(next: CannedResponse[]) {
   responses = next;
   try {
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify(next));

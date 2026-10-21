@@ -12,14 +12,14 @@ import { getSupabase } from "./supabase";
 
 export const TAG_NAME_MAX = 40;
 
-export function cleanTagName(value: string): string {
+function cleanTagName(value: string): string {
   // Array.from keeps astral characters (emoji) intact when the 40-char cap
   // lands mid-surrogate-pair.
   return Array.from(value.replace(/\s+/g, " ").trim()).slice(0, TAG_NAME_MAX).join("");
 }
 
 /** All tag names for a site, or null when Supabase is not configured. */
-export async function fetchTags(siteKey: string): Promise<string[] | null> {
+async function fetchTags(siteKey: string): Promise<string[] | null> {
   const client = getSupabase();
   if (!client) return null;
   const siteId = await siteIdFor(client, siteKey);
@@ -33,7 +33,7 @@ export async function fetchTags(siteKey: string): Promise<string[] | null> {
   return data.map((row) => String(row.name));
 }
 
-export type CreateTagResult =
+type CreateTagResult =
   | { ok: true; name: string; created: boolean }
   | { ok: false; reason: "backend" | "invalid" | "failed" };
 

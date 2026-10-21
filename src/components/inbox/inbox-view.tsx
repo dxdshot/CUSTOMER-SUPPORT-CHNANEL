@@ -8,6 +8,7 @@ import { getSupabase } from "@/lib/supabase";
 import { useAgentProfile } from "@/lib/agent-profile";
 import {
   conversations as seedConversations,
+  conversationStatus,
   currentAgent,
   type Conversation,
   type ConversationStatus,
@@ -194,7 +195,7 @@ export function InboxView({
             : conversation.unread;
           return {
             ...conversation,
-            status: (patch.status as ConversationStatus) ?? conversation.status,
+            status: conversationStatus(patch.status, conversation.status),
             lastMessage: patch.last_message ?? conversation.lastMessage,
             updatedLabel: patch.last_message ? "now" : conversation.updatedLabel,
             unread: typeof patch.unread_count === "number" ? patch.unread_count : computed,
