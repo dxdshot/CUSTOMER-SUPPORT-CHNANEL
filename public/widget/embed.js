@@ -39,7 +39,7 @@
     // without erasing a visitor's conversation. Storage changes only when the
     // persisted data shape is no longer compatible.
     const WIDGET_RELEASE = {
-        assets: "2026-10-22.1",
+        assets: "2026-10-22.2",
         storage: "2026-10-20.5",
     };
     const STORAGE_VERSION_KEY = "chat-platform:widget-version";

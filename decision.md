@@ -2071,3 +2071,21 @@ check now asserts the current shared solid accent instead of an obsolete gradien
 **Files.** `src/widget/{embed,version}.ts`, `src/app/dashboard/widget/page.tsx`,
 `scripts/verify-{widget-embed,deployed-widget,widget-release,runtime-regressions,widget-requests,preset-route}.mjs`,
 `package.json`, `.env.example`, `README.md`, `decision.md`, and `flow.md`.
+
+---
+
+## D57 — One blue install theme and no product-name injection
+
+**Evidence.** The widget CSS already routes the launcher, header, visitor bubbles, send
+button, email prompt, and first-chat action through `#2563eb`. The dashboard snippet
+builder still exposed an accent picker, so it could generate a purple override even
+though the mobile snippet used blue.
+
+**Decision.** The dashboard generator now emits `data-color="#2563eb"` directly and no
+longer offers an accent picker. The snippet does not inject a product name; the widget
+keeps its support copy. Release `2026-10-22.2` refreshes cached mobile assets without
+clearing conversations.
+
+**Proof.** The release check first failed because the generator used a mutable accent.
+It now asserts the fixed blue snippet, the absence of a color picker and `Codex` copy,
+and the shared blue token on the launcher, visitor bubble, and send button.

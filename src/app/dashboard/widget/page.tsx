@@ -27,9 +27,8 @@ export default function WidgetPage() {
   const [reply, setReply] = useState("");
 
   const [siteKey, setSiteKey] = useState(DEMO_SITE_KEY);
-  const [accent, setAccent] = useState("#2563eb");
   const [copied, setCopied] = useState(false);
-  const snippet = `<script src="${WIDGET_ORIGIN}/widget/embed.js?v=${WIDGET_RELEASE.assets}" async\n  data-site="${escapeAttribute(siteKey)}"\n  data-color="${accent}"></script>`;
+  const snippet = `<script src="${WIDGET_ORIGIN}/widget/embed.js?v=${WIDGET_RELEASE.assets}" async\n  data-site="${escapeAttribute(siteKey)}"\n  data-color="#2563eb"></script>`;
 
   async function copySnippet() {
     try {
@@ -168,7 +167,7 @@ export default function WidgetPage() {
         <div className="max-w-lg pb-24 min-[1100px]:pr-4">
           <h1 className="text-xl font-medium tracking-tight">Install widget</h1>
           <div className="mt-4 space-y-3 rounded-xl border border-(--obsidian-dashboard-shell-border) bg-(--obsidian-dashboard-shell-control) p-4">
-            <div className="grid gap-3 sm:grid-cols-2">
+            <div className="grid gap-3">
               <label className="block text-xs">
                 <span className="mb-1.5 block font-medium">Site key</span>
                 <input
@@ -177,18 +176,6 @@ export default function WidgetPage() {
                   spellCheck={false}
                   className="w-full rounded-lg border border-(--obsidian-dashboard-shell-border-strong) bg-transparent px-2.5 py-2 font-mono text-[11px] outline-none focus:border-(--obsidian-dashboard-shell-ring)"
                 />
-              </label>
-              <label className="block text-xs">
-                <span className="mb-1.5 block font-medium">Accent colour</span>
-                <span className="flex items-center gap-2">
-                  <input
-                    type="color"
-                    value={accent}
-                    onChange={(event) => setAccent(event.target.value)}
-                    className="size-8 cursor-pointer rounded-md border border-(--obsidian-dashboard-shell-border-strong) bg-transparent p-0.5"
-                  />
-                  <span className="font-mono text-[11px] text-(--obsidian-dashboard-shell-text-muted)">{accent}</span>
-                </span>
               </label>
             </div>
             <pre className="overflow-x-auto rounded-lg border border-(--obsidian-dashboard-shell-border) bg-black/40 p-3 font-mono text-[11px] leading-relaxed whitespace-pre">{snippet}</pre>

@@ -42,9 +42,17 @@ assert.match(
 );
 assert.doesNotMatch(builtWidget, /topline-title/);
 
+const dashboardWidget = read("src/app/dashboard/widget/page.tsx");
+assert.match(dashboardWidget, /data-color=\"#2563eb\"/);
+assert.doesNotMatch(dashboardWidget, /type=\"color\"/);
+assert.doesNotMatch(dashboardWidget, /Codex/i);
+
 const builtStyles = read("public/widget/styles.js");
 assert.match(builtStyles, /--accent-fill:var\(--blue\)/);
+assert.match(builtStyles, /\.launcher\{[^}]*background:var\(--blue\)/);
 assert.match(builtStyles, /\.header\{[^}]*background:var\(--accent-fill\)/);
+assert.match(builtStyles, /\.message\[data-author=visitor\] \.bubble\{[^}]*background:var\(--blue\)/);
+assert.match(builtStyles, /\.send\{[^}]*background:var\(--blue\)/);
 assert.match(builtStyles, /\.first-chat\{[^}]*background:var\(--accent-fill\)/);
 assert.match(builtStyles, /\.email-trigger\{[^}]*justify-content:center[^}]*background:var\(--blue\)/);
 assert.doesNotMatch(builtStyles, /var\(--warning\)/);

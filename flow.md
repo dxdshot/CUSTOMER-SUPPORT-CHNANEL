@@ -991,6 +991,23 @@ message includes the page path at send time, so client-side navigation is reflec
 the dashboard. The host must permit the widget host in its script and connection CSP
 rules; a stylesheet nonce is needed when inline styles are restricted.
 
+---
+
+## 20. D57 fixed blue install theme
+
+```text
+dashboard snippet → data-color="#2563eb"
+  └─ widget --blue
+       ├─ launcher and header
+       ├─ visitor chat bubble and send button
+       └─ first-chat and email notification actions
+```
+
+The installer no longer exposes a color picker, so desktop and mobile copies cannot
+drift between purple and blue through the generated snippet. The snippet adds no
+product name; the header remains support-oriented unless a host explicitly supplies
+its own `data-title`.
+
 
 
 

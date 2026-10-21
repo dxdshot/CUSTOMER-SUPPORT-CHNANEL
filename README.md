@@ -37,6 +37,7 @@ with your site key. The script loads its API and artwork from the same HTTPS hos
 <script
   src="https://support-widget-six.vercel.app/widget/embed.js"
   data-site="your-site-key"
+  data-color="#2563eb"
   async
 ></script>
 ```
