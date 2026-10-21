@@ -1,36 +1,52 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Customer Support Channel
 
-## Getting Started
+A customer support dashboard with an embeddable chat widget. It includes an inbox,
+visitor history, typing and presence state, preset replies, tags, attachments, email
+notifications, read receipts, and conversation ratings.
 
-First, run the development server:
+## Stack
+
+- Next.js 16 and React 19
+- Supabase Postgres and Realtime
+- TypeScript and Tailwind CSS
+
+## Run locally
+
+Requires Node.js 22, pnpm 10, and a Supabase project.
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
+pnpm install
+cp .env.example .env.local
 pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Add your Supabase values to `.env.local`, then run `supabase/schema.sql` in the Supabase
+SQL editor. Open `http://localhost:3000` for the dashboard.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```env
+NEXT_PUBLIC_SUPABASE_URL=
+NEXT_PUBLIC_SUPABASE_ANON_KEY=
+SUPABASE_SERVICE_ROLE_KEY=
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Embed the widget on another page with the site key shown in dashboard settings.
 
-## Learn More
+```html
+<script
+  src="http://localhost:3000/widget/embed.js"
+  data-site="your-site-key"
+  async
+></script>
+```
 
-To learn more about Next.js, take a look at the following resources:
+## Checks
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```bash
+pnpm test
+pnpm lint
+pnpm verify:widget
+pnpm build
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+The included Supabase policies support local demos. Tighten access policies and add agent
+authentication before a production deployment.

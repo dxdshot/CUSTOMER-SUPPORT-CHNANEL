@@ -1,26 +1,60 @@
 @import "tailwindcss";
 
+/*
+ * Dark-only theme. The app ships a single deliberate dark palette instead of a
+ * toggle, so every surface — shell, inbox, portalled menus — reads as one
+ * material. These tokens mirror the dashboard shell's dark values so
+ * ObsidianUI components and the app's own screens share one vocabulary.
+ */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  color-scheme: dark;
+
+  --background: #0b0b0c;
+  --foreground: #f9fbff;
+
+  --card: #1a1a1a;
+  --card-foreground: #f9fbff;
+  --popover: #1f1f1f;
+  --popover-foreground: #f9fbff;
+
+  --muted: #2a2a2a;
+  --muted-foreground: #9a9a9a;
+
+  --border: #232323;
+  --input: #2a2a2a;
+
+  --accent: #262626;
+  --accent-foreground: #f9fbff;
+
+  --primary: #2563eb;
+  --primary-foreground: #f9fbff;
+
+  --ring: #676767;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-ring: var(--ring);
+
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-geist-sans), ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
 }
