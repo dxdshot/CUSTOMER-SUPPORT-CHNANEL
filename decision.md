@@ -2089,3 +2089,30 @@ clearing conversations.
 **Proof.** The release check first failed because the generator used a mutable accent.
 It now asserts the fixed blue snippet, the absence of a color picker and `Codex` copy,
 and the shared blue token on the launcher, visitor bubble, and send button.
+
+---
+
+## D58 — One workspace agent identity without auth
+
+**Evidence.** `src/lib/agent-profile.ts` generated a random `crypto.randomUUID()` per browser and
+stored it in localStorage. Each device therefore created its own `agents` row, with its own name,
+photo, away message, heartbeat, and typing identity. The desktop and phone saw different photos even
+though both wrote to the same database. Recent agent messages had `agent_avatar = null`, so the
+widget fell back to the product artwork instead of the agent.
+
+**Decision.** Without auth, the workspace has one agent identity. Every browser derives the same id,
+`agent-${DEMO_SITE_KEY}`, so they read and write one `agents` row. The database is the source of
+truth; localStorage is only a first-paint cache. `hydrateAgentProfile()` seeds the shared row from
+the latest legacy row that has a photo (falling back to the local cache) and then adopts it.
+`heartbeatAgent()` only updates `last_seen_at`/`updated_at`, so a stale cached profile can never
+overwrite a photo saved on another device. Agent messages without a photo now render the agent's
+initials on the same gradient palette as the dashboard avatar; automated replies keep the product
+artwork. Release `2026-10-22.5` refreshes cached widget assets.
+
+**Proof.** `scripts/verify-runtime-regressions.mjs` asserts the shared id, server-wins hydration,
+photo preservation on save, and that the heartbeat patch contains no name/avatar fields.
+`scripts/verify-widget-release.mjs` asserts the initials fallback ships. Verified across desktop and
+390px viewports: a profile or photo changed on one device appears on the other after hydration.
+
+**Trade-off.** The shared profile remains publicly writable under the demo RLS policies. Real
+per-agent identities (and locked-down profiles) require auth, which is explicitly out of scope.

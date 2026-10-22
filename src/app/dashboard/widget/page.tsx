@@ -6,7 +6,7 @@ import { play } from "cuelume";
 import { AppShell } from "@/components/app-shell";
 import { DashboardButton } from "@/components/block/dashboard-shell";
 import { DEMO_SITE_KEY } from "@/lib/conversations";
-import { getAgentProfile } from "@/lib/agent-profile";
+import { useAgentProfile } from "@/lib/agent-profile";
 import { getSupabase } from "@/lib/supabase";
 import { DEFAULT_WELCOME, presetMessages } from "@/lib/widget-copy";
 import { mountChatWidget, type WidgetHandle, type WidgetMessage } from "@/widget/widget";
@@ -17,6 +17,11 @@ const WIDGET_ORIGIN = (process.env.NEXT_PUBLIC_WIDGET_ORIGIN || "https://support
 const escapeAttribute = (value: string) => value.replaceAll("&", "&amp;").replaceAll('"', "&quot;").replaceAll("<", "&lt;");
 
 export default function WidgetPage() {
+  const profile = useAgentProfile();
+  const profileRef = useRef(profile);
+  useEffect(() => {
+    profileRef.current = profile;
+  }, [profile]);
   const widget = useRef<WidgetHandle | null>(null);
   const previewTarget = useRef<HTMLDivElement>(null);
   const loadDelay = useRef(false);
@@ -58,7 +63,7 @@ export default function WidgetPage() {
       },
       transport: {
         async meta() {
-          const profile = getAgentProfile();
+          const profile = profileRef.current;
           const { data } = await (getSupabase()?.from("sites")
             .select("welcome_message, preset_messages")
             .eq("site_key", DEMO_SITE_KEY)
@@ -152,7 +157,8 @@ export default function WidgetPage() {
     const message: WidgetMessage = {
       id: crypto.randomUUID(),
       author: "agent",
-      authorName: "Dhimant",
+      authorName: profileRef.current.name,
+      authorAvatar: profileRef.current.avatarUrl || undefined,
       body,
       createdAt: new Date().toISOString(),
     };

@@ -19,7 +19,7 @@ import {
   type DashboardShellTab,
 } from "@/components/block/dashboard-shell";
 import { VisitorAvatar } from "@/components/inbox/visitor-avatar";
-import { heartbeatAgent, useAgentProfile } from "@/lib/agent-profile";
+import { heartbeatAgent, hydrateAgentProfile, useAgentProfile } from "@/lib/agent-profile";
 import { DEMO_SITE_KEY } from "@/lib/conversations";
 import { getSupabase } from "@/lib/supabase";
 import { cn } from "@/lib/utils";
@@ -109,15 +109,33 @@ export function AppShell({
   const pathname = usePathname();
   const sidebarWidth = useSyncExternalStore(subscribeSidebarWidth, readSidebarWidth, () => 200);
   const profile = useAgentProfile();
+  const [profileReady, setProfileReady] = useState(false);
   const [unread, setUnread] = useState(0);
   const [notifications, setNotifications] = useState<NotificationRow[]>([]);
 
   useEffect(() => {
-    if (profile.id === "server") return;
+    let active = true;
+    void hydrateAgentProfile().finally(() => {
+      if (active) setProfileReady(true);
+    });
+    const refresh = () => {
+      if (document.visibilityState === "visible") void hydrateAgentProfile();
+    };
+    window.addEventListener("focus", refresh);
+    document.addEventListener("visibilitychange", refresh);
+    return () => {
+      active = false;
+      window.removeEventListener("focus", refresh);
+      document.removeEventListener("visibilitychange", refresh);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!profileReady || profile.id === "server") return;
     heartbeatAgent(profile);
     const beat = window.setInterval(() => heartbeatAgent(profile), 30_000);
     return () => window.clearInterval(beat);
-  }, [profile]);
+  }, [profileReady, profile]);
 
   useEffect(() => {
     const client = getSupabase();

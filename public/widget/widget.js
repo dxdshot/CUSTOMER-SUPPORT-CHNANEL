@@ -62,6 +62,30 @@ function presenceDot(online) {
     dot.setAttribute("aria-label", online ? "Online" : "Offline");
     return dot;
 }
+// Mirrors the dashboard's VisitorAvatar palette so the same agent reads the
+// same way in the inbox and in the widget.
+const avatarGradients = [
+    "linear-gradient(135deg,#f08a3c,#d94f2b)",
+    "linear-gradient(135deg,#7c5cf0,#4b3ec7)",
+    "linear-gradient(135deg,#2fd0b5,#0e8f88)",
+    "linear-gradient(135deg,#4c9bff,#2a5bd7)",
+    "linear-gradient(135deg,#f2b54a,#d9822b)",
+    "linear-gradient(135deg,#f06a9b,#c73a72)",
+];
+function initialAvatar(name) {
+    const initials = name
+        .split(/\s+/)
+        .map((word) => word[0])
+        .filter(Boolean)
+        .slice(0, 2)
+        .join("")
+        .toUpperCase() || "S";
+    const hash = [...name].reduce((sum, char) => sum + char.charCodeAt(0), 0);
+    const node = element("span", "avatar-initial");
+    node.textContent = initials;
+    node.style.background = avatarGradients[hash % avatarGradients.length];
+    return node;
+}
 // crypto.randomUUID is secure-context only — an http:// embed would otherwise throw at mount.
 const uid = () => typeof crypto !== "undefined" && typeof crypto.randomUUID === "function"
     ? crypto.randomUUID()
@@ -881,22 +905,25 @@ export function mountChatWidget(options) {
                 // later ones hold the same 22px slot so every bubble shares one left edge.
                 if (startsRun) {
                     const avatar = element("span", "avatar");
-                    if (message.authorAvatar && !message.isAutomated) {
+                    const messageOnline = message.agentId
+                        ? onlineIds.has(message.agentId)
+                        : message.authorName
+                            ? onlineNames.has(message.authorName.toLowerCase())
+                            : false;
+                    if (message.isAutomated) {
+                        avatar.append(art());
+                    }
+                    else if (message.authorAvatar) {
                         const photo = element("span", "avatar-photo");
                         const image = element("img", "avatar-img");
                         image.src = message.authorAvatar;
                         image.alt = "";
-                        image.addEventListener("error", () => photo.replaceWith(art()), { once: true });
+                        image.addEventListener("error", () => photo.replaceWith(initialAvatar(message.authorName ?? "Support")), { once: true });
                         photo.append(image);
-                        const messageOnline = message.agentId
-                            ? onlineIds.has(message.agentId)
-                            : message.authorName
-                                ? onlineNames.has(message.authorName.toLowerCase())
-                                : false;
                         avatar.append(photo, presenceDot(messageOnline));
                     }
                     else {
-                        avatar.append(art());
+                        avatar.append(initialAvatar(message.authorName ?? "Support"), presenceDot(messageOnline));
                     }
                     row.append(avatar);
                 }

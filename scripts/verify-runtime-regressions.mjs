@@ -167,18 +167,57 @@ assert.equal(events.size, 0);
 console.log('Profile hydration, unsaved edits, and widget polling regressions passed.');
 
 let persisted;
+let updatePatch;
 let stored = JSON.stringify({ id: 'agent-1', name: 'Ada', avatarUrl: 'photo.png', awayMessage: 'Away' });
+const sharedRow = { name: 'Shared', avatar_url: 'shared.png', away_message: 'Shared away' };
+const profileSupabase = {
+  from: () => ({
+    select: () => {
+      const query = {
+        eq: () => query,
+        neq: () => query,
+        not: () => query,
+        order: () => query,
+        limit: () => query,
+        maybeSingle: async () => ({ data: sharedRow }),
+      };
+      return query;
+    },
+    upsert: async (row) => { persisted = row; return { error: null }; },
+    update: (patch) => {
+      updatePatch = patch;
+      return {
+        eq: () => ({
+          select: () => ({
+            maybeSingle: async () => ({ data: { id: 'agent-site_demo_001' } }),
+          }),
+        }),
+      };
+    },
+  }),
+};
 const profileModule = { exports: {} };
 vm.runInNewContext(compile('src/lib/agent-profile.ts'), {
   exports: profileModule.exports,
   window: { localStorage: { getItem: () => stored, setItem: (_, value) => { stored = value; } } },
   require(name) {
     if (name === 'react') return {};
-    return { getSupabase: () => ({ from: () => ({ upsert: async (row) => { persisted = row; return { error: null }; } }) }) };
+    if (name === './conversations') return { DEMO_SITE_KEY: 'site_demo_001' };
+    return { getSupabase: () => profileSupabase };
   },
 });
+const hydrated = await profileModule.exports.hydrateAgentProfile();
+assert.equal(hydrated.id, 'agent-site_demo_001', 'every browser uses the workspace agent id');
+assert.equal(hydrated.name, 'Shared', 'the database profile wins over the local cache');
+assert.equal(hydrated.avatarUrl, 'shared.png', 'a photo saved on another device is adopted');
 await profileModule.exports.saveAgentProfile({ name: 'Grace' });
+assert.equal(persisted.id, 'agent-site_demo_001', 'saving writes the shared row, not a per-browser id');
 assert.equal(persisted.name, 'Grace', 'saving must execute the Supabase request');
-assert.equal(persisted.avatar_url, 'photo.png');
+assert.equal(persisted.avatar_url, 'shared.png');
 assert.equal(JSON.parse(stored).name, 'Grace');
-console.log('Profile save executes its database request and preserves the photo.');
+profileModule.exports.heartbeatAgent(profileModule.exports.getAgentProfile());
+await new Promise(setImmediate);
+assert.ok(updatePatch.last_seen_at, 'heartbeat refreshes presence');
+assert.equal(updatePatch.name, undefined, 'heartbeat cannot clobber a name saved elsewhere');
+assert.equal(updatePatch.avatar_url, undefined, 'heartbeat cannot clobber a photo saved elsewhere');
+console.log('Workspace agent identity hydrates, saves, and heartbeats as one shared row.');

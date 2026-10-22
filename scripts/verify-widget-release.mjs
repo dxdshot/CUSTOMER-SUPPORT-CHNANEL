@@ -40,6 +40,7 @@ assert.match(
   builtWidget,
   /formWrap\.hidden\s*=\s*form\.hidden\s*&&\s*emailTrigger\.hidden\s*&&\s*emailPrompt\.hidden\s*&&\s*firstChat\.hidden/,
 );
+assert.match(builtWidget, /avatar-initial/, "agent messages without a photo fall back to initials");
 assert.doesNotMatch(builtWidget, /topline-title/);
 
 const dashboardWidget = read("src/app/dashboard/widget/page.tsx");

@@ -159,22 +159,27 @@ export async function GET(request: NextRequest) {
     .select("id, name, avatar_url, away_message, last_seen_at")
     .order("last_seen_at", { ascending: false, nullsFirst: false })
     .limit(20);
-  const agents = (agentRows ?? []) as {
+  const agents = ((agentRows ?? []) as {
     id: string;
     name: string | null;
     avatar_url: string | null;
     away_message: string | null;
     last_seen_at: string | null;
-  }[];
-  const onlineAgents = agents
+  }[]);
+  // One workspace identity (D58): ignore rows left behind by pre-shared-profile
+  // tabs. Fall back to the old behaviour until the shared row has been seeded.
+  const workspaceAgentId = `agent-${site.site_key}`;
+  const sharedAgents = agents.filter((agent) => agent.id === workspaceAgentId);
+  const activeAgents = sharedAgents.length > 0 ? sharedAgents : agents;
+  const onlineAgents = activeAgents
     .filter((agent) => agent.last_seen_at && agent.last_seen_at > onlineSince)
     .map((agent) => ({ id: agent.id, name: agent.name || "Agent", avatar: agent.avatar_url || undefined }));
   // Prefer the agent who replied last; otherwise the most recently active one.
   const awayFor = (agentId?: string | null) => {
-    const match = agentId ? agents.find((agent) => agent.id === agentId) : undefined;
+    const match = agentId ? activeAgents.find((agent) => agent.id === agentId) : undefined;
     return (
       match?.away_message?.trim() ||
-      agents[0]?.away_message?.trim() ||
+      activeAgents[0]?.away_message?.trim() ||
       site.away_message?.trim() ||
       "We'll reply as soon as possible"
     );

@@ -54,6 +54,7 @@ export const widgetStyles = `
 .message{display:flex;align-items:flex-start;gap:6px}.message[data-same-author=true]{margin-top:-6px}
 .avatar{position:relative;flex:0 0 22px;height:22px;background:var(--blue);border-radius:50%;display:grid;place-items:center}.avatar img{width:74%;height:74%;min-width:0;min-height:0}.avatar-photo{width:100%;height:100%;border-radius:50%;overflow:hidden;display:grid;place-items:center;background:var(--blue)}.avatar .avatar-img{width:100%;height:100%;object-fit:cover}
 .avatar-spacer{flex:0 0 22px}
+.avatar-initial{display:grid;place-items:center;width:100%;height:100%;border-radius:50%;color:#fff;font-size:9px;font-weight:600;line-height:1;letter-spacing:.2px;box-shadow:inset 0 0 0 1px #ffffff24}
 .bubble-wrap{max-width:86%;min-width:0}
 .bubble{padding:8px 11px;border-radius:13px 13px 13px 4px;background:var(--muted);font-size:12.5px;line-height:1.5;white-space:pre-wrap;overflow-wrap:anywhere;word-break:break-word}
 .bubble a{color:inherit;text-decoration-line:underline;text-decoration-style:solid;text-decoration-color:color-mix(in srgb,var(--blue) 45%,white);text-decoration-thickness:1.5px;text-underline-offset:3px;transition:text-decoration-color 150ms ease,text-decoration-thickness 150ms ease;overflow-wrap:anywhere}
