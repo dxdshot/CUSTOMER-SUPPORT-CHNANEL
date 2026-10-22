@@ -84,11 +84,13 @@ export const widgetStyles = `
 .email-save:hover:not(:disabled){background:color-mix(in srgb,var(--blue) 84%,white)}
 .email-skip{flex:0 0 auto;padding:9px 16px;border:1px solid var(--strong);border-radius:9px;background:var(--muted);color:inherit;font-size:12px;font-weight:600}
 .email-skip:hover{background:var(--muted-hover,#333)}
-.composer{background:var(--control);border:1px solid var(--strong);border-radius:12px;box-shadow:inset 0 1px 0 #ffffff06}.composer:focus-within{border-color:#626262}
+.composer{position:relative;background:var(--control);border:1px solid var(--strong);border-radius:12px;box-shadow:inset 0 1px 0 #ffffff06}.composer:focus-within{border-color:#626262}
 .email-trigger:not([hidden])~.composer,.email-card:not([hidden])~.composer{border-top:0;border-radius:5px 5px 12px 12px}
 .input{display:block;resize:none;width:100%;max-height:96px;min-height:40px;padding:10px 12px 2px;border:0;outline:none!important;color:#f9fbff;background:transparent;font-size:13px;line-height:1.5}.input::placeholder{color:var(--text-muted)}.input:disabled{opacity:.5}
 .composer-bar{display:flex;align-items:center;justify-content:space-between;padding:4px 7px 7px}
-.hint{font-size:9.5px;color:var(--text-muted);padding-left:4px}
+.preset-menu{position:absolute;left:0;right:0;bottom:calc(100% + 6px);z-index:12;max-height:180px;overflow:auto;padding:4px;border:1px solid var(--strong);border-radius:12px;background:var(--control);box-shadow:0 12px 28px #000a}
+.preset-menu-item{display:block;width:100%;padding:8px 9px;border:0;border-radius:7px;background:transparent;color:var(--text-muted);font-size:12px;line-height:1.4;text-align:left}
+.preset-menu-item[data-active=true]{background:var(--muted);color:#fff}
 .send{width:26px;height:26px;display:grid;place-items:center;border:1px solid #ffffff17;border-radius:7px;padding:0;background:var(--blue);box-shadow:inset 0 2px 4px #ffffff24}.send:disabled{background:#303033;border-color:transparent;color:#67676b;box-shadow:none}.send svg{width:15px;height:15px}
 .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
 @keyframes breathe{from{filter:brightness(.92)}to{filter:brightness(1.08)}}
@@ -119,9 +121,8 @@ export const widgetStyles = `
 .widget[data-maximized=true] .email-trigger{width:100%;max-width:720px;margin:0 auto;padding:8px 12px}
 .widget[data-maximized=true] .email-card{width:100%;max-width:720px;margin:0 auto}
 .widget[data-maximized=true] .input{min-height:36px;max-height:120px;padding:8px 12px 2px;font-size:14px}
-.widget[data-maximized=true] .hint{font-size:10.5px}
 @media(hover:hover) and (pointer:fine){.icon-btn:hover{background:#ffffff16}.header-art:hover{background:#ffffff20}.menu-item:hover{background:#ffffff12}.notice-close:hover{background:#ffffff16;color:#fff}.notice-open:hover .notice-body{color:#c9c9c9}.send:hover:not(:disabled){background:color-mix(in srgb,var(--blue) 84%,white)}.launcher:hover{background:color-mix(in srgb,var(--blue) 88%,black)}}
-@media(max-width:480px){.widget{right:max(12px,env(safe-area-inset-right));bottom:max(12px,env(safe-area-inset-bottom));left:12px;gap:10px}.panel{width:100%;height:min(520px,calc(100dvh - 86px));min-height:220px;border-radius:16px}.launcher{width:52px;height:52px}.header{padding:9px 12px;border-radius:0 0 14px 14px}.input{font-size:16px;min-height:44px}.hint{visibility:hidden}}
+@media(max-width:480px){.widget{right:max(12px,env(safe-area-inset-right));bottom:max(12px,env(safe-area-inset-bottom));left:12px;gap:10px}.panel{width:100%;height:min(520px,calc(100dvh - 86px));min-height:220px;border-radius:16px}.launcher{width:52px;height:52px}.header{padding:9px 12px;border-radius:0 0 14px 14px}.input{font-size:16px;min-height:44px}}
 @media(prefers-reduced-motion:reduce){.loading-art img,.launcher[data-loading=true] .art{animation:none;filter:brightness(.95)}button:active:not(:disabled){transform:none}}
 .typing-row{display:flex;align-items:center;gap:8px;padding:10px 2px 0;font-size:10.5px;color:var(--text-muted)}
 .typing-avatar{position:relative;display:inline-grid;place-items:center;width:18px;height:18px;flex:0 0 18px}

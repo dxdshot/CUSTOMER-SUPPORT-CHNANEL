@@ -38,7 +38,7 @@
   // without erasing a visitor's conversation. Storage changes only when the
   // persisted data shape is no longer compatible.
   const WIDGET_RELEASE = {
-    assets: "2026-10-22.2",
+    assets: "2026-10-22.3",
     storage: "2026-10-20.5",
   } as const;
   const STORAGE_VERSION_KEY = "chat-platform:widget-version";
@@ -363,7 +363,7 @@
         let inFlight = false;
         const controller = new AbortController();
         const run = async () => {
-          if (stopped || inFlight || document.visibilityState === "hidden") return;
+          if (stopped || inFlight) return;
           inFlight = true;
           const before = new Set(seen);
           const initialized = lastMeta !== null;
@@ -389,7 +389,7 @@
           }
         };
         const schedule = () => {
-          if (stopped || document.visibilityState === "hidden") return;
+          if (stopped) return;
           if (timer) window.clearTimeout(timer);
           timer = window.setTimeout(async () => {
             await run();
@@ -403,8 +403,13 @@
           schedule();
         };
         const onVisibility = () => {
-          if (timer) window.clearTimeout(timer);
-          if (document.visibilityState === "visible") pollTick?.();
+          if (document.visibilityState === "visible") {
+            pollTick?.();
+            return;
+          }
+          // Keep polling in the background so replies still raise a notice and
+          // a sound while the visitor is on another tab.
+          schedule();
         };
         document.addEventListener("visibilitychange", onVisibility);
         schedule();

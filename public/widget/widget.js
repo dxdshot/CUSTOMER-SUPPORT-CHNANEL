@@ -115,6 +115,9 @@ export function mountChatWidget(options) {
     let viewingPast = false;
     let firstChatStarted = false;
     let pendingAttachment = null;
+    let presetMenuItems = [];
+    let presetMenuIndex = 0;
+    let presetMenuDismissed = false;
     let uploading = false;
     let emailPromptDone = false;
     let emailCardOpen = false;
@@ -352,8 +355,6 @@ export function mountChatWidget(options) {
     input.placeholder = "Compose your message…";
     input.setAttribute("aria-label", "Your message");
     const bar = element("div", "composer-bar");
-    const hint = element("span", "hint");
-    hint.textContent = "Enter to send · Shift + Enter for a new line";
     const attachInput = element("input", "attach-input");
     attachInput.type = "file";
     attachInput.hidden = true;
@@ -364,7 +365,7 @@ export function mountChatWidget(options) {
     if (!options.transport.upload)
         attachButton.hidden = true;
     const barLeft = element("div", "bar-left");
-    barLeft.append(attachButton, hint);
+    barLeft.append(attachButton);
     const send = element("button", "send");
     send.type = "submit";
     send.setAttribute("aria-label", "Send message");
@@ -372,7 +373,11 @@ export function mountChatWidget(options) {
     bar.append(barLeft, send);
     const attachChip = element("div", "attach-chip");
     attachChip.hidden = true;
-    form.append(input, attachChip, attachInput, bar);
+    const presetMenu = element("div", "preset-menu");
+    presetMenu.hidden = true;
+    presetMenu.setAttribute("role", "listbox");
+    presetMenu.setAttribute("aria-label", "Preset replies");
+    form.append(presetMenu, input, attachChip, attachInput, bar);
     formWrap.append(emailTrigger, emailPrompt, firstChat, form);
     panel.append(header, body, formWrap);
     const launcher = element("button", "launcher");
@@ -967,8 +972,66 @@ export function mountChatWidget(options) {
             greeting.append(avatar, welcome);
             list.prepend(greeting);
         }
+        renderPresetMenu();
         if (nearBottom)
             body.scrollTop = body.scrollHeight;
+    }
+    // "/" in the composer opens the preset replies configured in Settings, the
+    // same way the inbox slash menu opens canned responses.
+    function closePresetMenu(dismissed) {
+        presetMenu.hidden = true;
+        presetMenu.replaceChildren();
+        presetMenuItems = [];
+        presetMenuIndex = 0;
+        presetMenuDismissed = dismissed;
+    }
+    function renderPresetMenu() {
+        if (presetMenuDismissed || state !== "ready" || meta?.status === "closed" || viewingPast) {
+            presetMenu.hidden = true;
+            return;
+        }
+        const command = /^\/([a-z0-9-]*)$/i.exec(input.value);
+        const query = command ? command[1].toLowerCase() : null;
+        presetMenuItems = query === null
+            ? []
+            : (meta?.presetMessages ?? []).filter((preset) => Boolean(preset.answer) && preset.question.toLowerCase().includes(query));
+        if (presetMenuItems.length === 0) {
+            presetMenu.hidden = true;
+            presetMenu.replaceChildren();
+            return;
+        }
+        if (presetMenuIndex >= presetMenuItems.length)
+            presetMenuIndex = 0;
+        presetMenu.replaceChildren(...presetMenuItems.map((preset, index) => {
+            const item = element("button", "preset-menu-item");
+            item.type = "button";
+            item.setAttribute("role", "option");
+            item.setAttribute("aria-selected", String(index === presetMenuIndex));
+            item.dataset.active = String(index === presetMenuIndex);
+            item.textContent = preset.question;
+            item.addEventListener("mousedown", (event) => event.preventDefault());
+            item.addEventListener("click", () => applyPreset(preset));
+            return item;
+        }));
+        presetMenu.hidden = false;
+    }
+    function applyPreset(preset) {
+        if (state !== "ready" || meta?.status === "closed" || viewingPast)
+            return;
+        closePresetMenu(true);
+        input.value = "";
+        input.style.height = "auto";
+        send.disabled = state !== "ready";
+        firstChatStarted = true;
+        void transmit({
+            id: uid(),
+            author: "visitor",
+            body: preset.question,
+            createdAt: new Date().toISOString(),
+            delivery: "sending",
+            presetQuestion: preset.question,
+        });
+        input.focus();
     }
     async function reload(conversationId) {
         loadAbort?.abort();
@@ -1275,6 +1338,7 @@ export function mountChatWidget(options) {
         // so a close during the art wait restores the art here.
         launcher.replaceChildren(art());
         launcher.setAttribute("aria-expanded", "false");
+        closePresetMenu(true);
         syncLauncher();
         options.transport.setOpen?.(false);
         if (returnFocus instanceof HTMLElement && returnFocus.isConnected)
@@ -1517,11 +1581,40 @@ export function mountChatWidget(options) {
     });
     input.addEventListener("input", () => {
         signalTyping();
+        presetMenuDismissed = false;
+        presetMenuIndex = 0;
+        renderPresetMenu();
         send.disabled = state !== "ready" || (!input.value.trim() && !pendingAttachment);
         input.style.height = "auto";
         input.style.height = `${Math.min(input.scrollHeight, 120)}px`;
     });
     input.addEventListener("keydown", (event) => {
+        if (!presetMenu.hidden && presetMenuItems.length > 0) {
+            if (event.key === "ArrowDown") {
+                event.preventDefault();
+                presetMenuIndex = (presetMenuIndex + 1) % presetMenuItems.length;
+                renderPresetMenu();
+                return;
+            }
+            if (event.key === "ArrowUp") {
+                event.preventDefault();
+                presetMenuIndex = (presetMenuIndex - 1 + presetMenuItems.length) % presetMenuItems.length;
+                renderPresetMenu();
+                return;
+            }
+            if (event.key === "Enter" || event.key === "Tab") {
+                event.preventDefault();
+                const preset = presetMenuItems[presetMenuIndex];
+                if (preset)
+                    applyPreset(preset);
+                return;
+            }
+            if (event.key === "Escape") {
+                event.preventDefault();
+                closePresetMenu(true);
+                return;
+            }
+        }
         if (event.key === "Enter" && !event.shiftKey && !event.isComposing) {
             event.preventDefault();
             form.requestSubmit();
@@ -1572,6 +1665,7 @@ export function mountChatWidget(options) {
         input.value = "";
         input.style.height = "auto";
         pendingAttachment = null;
+        closePresetMenu(true);
         void transmit({
             id: uid(),
             author: "visitor",
