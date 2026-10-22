@@ -3,6 +3,6 @@
  * conversation or identity. Storage only changes for incompatible local data.
  */
 export const WIDGET_RELEASE = {
-    assets: "2026-10-22.3",
+    assets: "2026-10-22.4",
     storage: "2026-10-20.5",
 };

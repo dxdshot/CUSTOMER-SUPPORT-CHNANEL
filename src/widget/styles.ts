@@ -96,10 +96,10 @@ export const widgetStyles = `
 @keyframes breathe{from{filter:brightness(.92)}to{filter:brightness(1.08)}}
 .widget[data-maximized=true] .launcher-wrap,.widget[data-maximized=true] .notices{display:none}
 .widget[data-maximized=true] .panel{position:fixed;inset:0;width:100%;height:100%;min-height:0;max-height:none;border:0;border-radius:0;box-shadow:none}
-.widget[data-maximized=true] .header{padding:10px 18px;border-radius:0 0 14px 14px}
+.widget[data-maximized=true] .header{padding:calc(10px + env(safe-area-inset-top)) calc(18px + env(safe-area-inset-right)) 10px calc(18px + env(safe-area-inset-left));border-radius:0 0 14px 14px}
 .widget[data-maximized=true] .topline{min-height:44px;justify-content:space-between}
 .widget[data-maximized=true] .identity-text{display:flex;top:50%;max-width:calc(100% - 160px)}
-.widget[data-maximized=true] .body{padding:20px 24px}
+.widget[data-maximized=true] .body{padding:20px calc(24px + env(safe-area-inset-right)) 20px calc(24px + env(safe-area-inset-left))}
 .widget[data-maximized=true] .messages{width:100%;max-width:720px;margin:0 auto;gap:14px}
 .widget[data-maximized=true] .message{gap:8px}
 .widget[data-maximized=true] .message[data-same-author=true]{margin-top:-8px}
@@ -109,7 +109,7 @@ export const widgetStyles = `
 .widget[data-maximized=true] .message[data-author=visitor] .bubble{border-radius:15px 15px 5px 15px}
 .widget[data-maximized=true] .meta{margin-top:4px;font-size:11px}
 .widget[data-maximized=true] .tick svg{width:14px;height:14px}
-.widget[data-maximized=true] .composer-wrap{padding:8px 18px 14px}
+.widget[data-maximized=true] .composer-wrap{padding:8px calc(18px + env(safe-area-inset-right)) calc(14px + env(safe-area-inset-bottom)) calc(18px + env(safe-area-inset-left))}
 .widget[data-maximized=true] .presets{width:100%;max-width:720px;margin:12px auto 0}
 .widget[data-maximized=true] .topic-prompt-card{padding:13px 15px}
 .widget[data-maximized=true] .topic-prompt-title{font-size:14.5px}
