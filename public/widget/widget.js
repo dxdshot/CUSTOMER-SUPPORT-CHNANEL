@@ -159,6 +159,7 @@ export function mountChatWidget(options) {
     const noticeIds = new Set();
     const MAX_NOTICES = 3;
     const widget = element("div", "widget");
+    widget.dataset.size = options.size ?? "lg";
     if (options.accent)
         widget.style.setProperty("--blue", options.accent);
     const panel = element("section", "panel");
@@ -1751,6 +1752,9 @@ export function mountChatWidget(options) {
     }
     const handle = {
         open, close, reload,
+        setSize(next) {
+            widget.dataset.size = next;
+        },
         destroy() {
             destroyed = true;
             abort.abort();

@@ -4,6 +4,8 @@ export type WidgetAttachment = {
     size: string;
     kind: "image" | "file";
 };
+/** Panel footprint: lg is the classic 300×480, sm stays comfortably usable. */
+export type WidgetSize = "sm" | "md" | "lg";
 export type PresetReply = {
     question: string;
     answer: string;
@@ -107,6 +109,8 @@ export type WidgetOptions = {
     target?: HTMLElement;
     title?: string;
     subtitle?: string;
+    /** Panel size; defaults to lg (the classic 300×480). */
+    size?: WidgetSize;
     /** Accent colour for the launcher, header, send button and visitor bubbles. */
     accent?: string;
     /** CSP nonce for the injected stylesheet, for hosts with a strict style-src policy. */
@@ -120,5 +124,7 @@ export type WidgetHandle = {
     open: () => void;
     close: () => void;
     reload: () => Promise<void>;
+    /** Resize the panel without remounting or losing the conversation. */
+    setSize: (size: WidgetSize) => void;
     destroy: () => void;
 };

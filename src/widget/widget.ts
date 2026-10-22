@@ -173,6 +173,7 @@ export function mountChatWidget(options: WidgetOptions): WidgetHandle {
   const noticeIds = new Set<string>();
   const MAX_NOTICES = 3;
   const widget = element("div", "widget");
+  widget.dataset.size = options.size ?? "lg";
   if (options.accent) widget.style.setProperty("--blue", options.accent);
   const panel = element("section", "panel");
   panel.id = `chat-${uid()}`;
@@ -1729,6 +1730,9 @@ export function mountChatWidget(options: WidgetOptions): WidgetHandle {
   }
   const handle: WidgetHandle = {
     open, close, reload,
+    setSize(next) {
+      widget.dataset.size = next;
+    },
     destroy() {
       destroyed = true;
       abort.abort();

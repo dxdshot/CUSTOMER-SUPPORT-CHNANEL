@@ -11,10 +11,22 @@ import { getSupabase } from "@/lib/supabase";
 import { DEFAULT_WELCOME, presetMessages } from "@/lib/widget-copy";
 import { mountChatWidget, type WidgetHandle, type WidgetMessage } from "@/widget/widget";
 import { WIDGET_RELEASE } from "@/widget/version";
-import type { PresetReply, WidgetMeta } from "@/widget/types";
+import type { PresetReply, WidgetMeta, WidgetSize } from "@/widget/types";
 
 const WIDGET_ORIGIN = (process.env.NEXT_PUBLIC_WIDGET_ORIGIN || "https://support-widget-six.vercel.app").replace(/\/+$/, "");
 const escapeAttribute = (value: string) => value.replaceAll("&", "&amp;").replaceAll('"', "&quot;").replaceAll("<", "&lt;");
+
+const WIDGET_SIZES: {
+  value: WidgetSize;
+  label: string;
+  width: number;
+  height: number;
+  mini: { width: number; height: number };
+}[] = [
+  { value: "sm", label: "Small", width: 260, height: 380, mini: { width: 35, height: 51 } },
+  { value: "md", label: "Medium", width: 280, height: 430, mini: { width: 40, height: 61 } },
+  { value: "lg", label: "Large", width: 300, height: 480, mini: { width: 46, height: 74 } },
+];
 
 export default function WidgetPage() {
   const profile = useAgentProfile();
@@ -33,7 +45,14 @@ export default function WidgetPage() {
 
   const [siteKey, setSiteKey] = useState(DEMO_SITE_KEY);
   const [copied, setCopied] = useState(false);
-  const snippet = `<script src="${WIDGET_ORIGIN}/widget/embed.js?v=${WIDGET_RELEASE.assets}" async\n  data-site="${escapeAttribute(siteKey)}"\n  data-color="#2563eb"></script>`;
+  const [size, setSize] = useState<WidgetSize>("lg");
+  const activeSize = WIDGET_SIZES.find((option) => option.value === size) ?? WIDGET_SIZES[2];
+  const snippet = `<script src="${WIDGET_ORIGIN}/widget/embed.js?v=${WIDGET_RELEASE.assets}" async\n  data-site="${escapeAttribute(siteKey)}"\n  data-size="${size}"\n  data-color="#2563eb"></script>`;
+
+  function chooseSize(next: WidgetSize) {
+    setSize(next);
+    widget.current?.setSize(next);
+  }
 
   async function copySnippet() {
     try {
@@ -191,6 +210,88 @@ export default function WidgetPage() {
           </div>
           <div className="mt-9 border-t border-(--obsidian-dashboard-shell-border) pt-6">
             <h2 className="text-xl font-medium tracking-tight">Preview widget</h2>
+            <div className="mt-4 rounded-xl border border-(--obsidian-dashboard-shell-border) bg-(--obsidian-dashboard-shell-control) p-4">
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <p className="text-sm font-medium">Widget size</p>
+                  <p className="mt-1 text-[11px] leading-4 text-(--obsidian-dashboard-shell-text-subtle)">
+                    Sets the panel footprint below and in the copy snippet.
+                  </p>
+                </div>
+                <span className="shrink-0 rounded-md border border-(--obsidian-dashboard-shell-border) bg-(--obsidian-dashboard-shell-muted) px-2 py-1 font-mono text-[10px] leading-none text-(--obsidian-dashboard-shell-text-subtle)">
+                  {activeSize.width} × {activeSize.height}
+                </span>
+              </div>
+              <div role="radiogroup" aria-label="Widget size" className="mt-3 grid grid-cols-3 gap-2">
+                {WIDGET_SIZES.map((option) => {
+                  const selected = size === option.value;
+                  return (
+                    <button
+                      key={option.value}
+                      type="button"
+                      role="radio"
+                      aria-checked={selected}
+                      onClick={() => chooseSize(option.value)}
+                      className="relative flex h-[118px] flex-col items-center justify-end gap-2 rounded-lg border p-2 outline-none transition-[border-color,background-color] duration-200 focus-visible:ring-2 focus-visible:ring-(--obsidian-dashboard-shell-ring)"
+                      style={{
+                        borderColor: selected
+                          ? "var(--obsidian-dashboard-shell-accent)"
+                          : "var(--obsidian-dashboard-shell-border)",
+                        background: selected
+                          ? "color-mix(in srgb, var(--obsidian-dashboard-shell-accent) 9%, var(--obsidian-dashboard-shell-control))"
+                          : "transparent",
+                      }}
+                    >
+                      {selected && (
+                        <Check aria-hidden className="absolute right-2 top-2 size-3 text-(--obsidian-dashboard-shell-accent)" />
+                      )}
+                      <span aria-hidden className="flex items-end" style={{ height: 76 }}>
+                        <span
+                          className="relative block overflow-hidden rounded-md border shadow-[0_8px_20px_-12px_rgb(0_0_0/0.8)] transition-[width,height] duration-300 ease-out"
+                          style={{
+                            width: option.mini.width,
+                            height: option.mini.height,
+                            borderColor: selected
+                              ? "var(--obsidian-dashboard-shell-accent)"
+                              : "var(--obsidian-dashboard-shell-border-strong)",
+                            background: "var(--obsidian-dashboard-shell-background)",
+                          }}
+                        >
+                          <span
+                            className="absolute inset-x-1 top-1 h-2 rounded-[2px]"
+                            style={{
+                              background: selected
+                                ? "var(--obsidian-dashboard-shell-accent)"
+                                : "rgba(255, 255, 255, 0.14)",
+                            }}
+                          />
+                          <span className="absolute inset-x-1 top-4 h-1 rounded-full bg-white/10" />
+                          <span className="absolute inset-x-1 top-6 h-1 rounded-full bg-white/10" />
+                          <span
+                            className="absolute bottom-1 right-1 size-1.5 rounded-full"
+                            style={{
+                              background: selected
+                                ? "var(--obsidian-dashboard-shell-accent)"
+                                : "rgba(255, 255, 255, 0.16)",
+                            }}
+                          />
+                        </span>
+                      </span>
+                      <span
+                        className="text-[11px] font-medium"
+                        style={{
+                          color: selected
+                            ? "var(--obsidian-dashboard-shell-foreground)"
+                            : "var(--obsidian-dashboard-shell-text-subtle)",
+                        }}
+                      >
+                        {option.label}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
             <div className="mt-4 flex flex-wrap gap-2">
               <DashboardButton variant="primary" onClick={() => widget.current?.open()}><MessageCircle aria-hidden />Open chat</DashboardButton>
               <DashboardButton variant="secondary" onClick={() => void replayLoading()} disabled={loading}><RotateCcw aria-hidden />{loading ? "Showing loading state" : "Preview loading"}</DashboardButton>

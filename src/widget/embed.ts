@@ -12,6 +12,7 @@
  *   data-asset     artwork URL (defaults to textbox-160.png next to this script)
  *   data-title     panel title
  *   data-subtitle  panel subtitle
+ *   data-size      panel size: lg (default), md, or sm
  *   data-style-nonce  CSP nonce for the injected stylesheet (defaults to this script's nonce)
  *   data-name      visitor name (skips the inline identity prompt)
  *   data-email     visitor email (skips the inline identity prompt)
@@ -34,11 +35,12 @@
     console.error("[chat-platform] data-site is required to connect the widget to support.");
     return;
   }
+  const size = data.size === "sm" || data.size === "md" ? data.size : "lg";
   // Keep in sync with src/widget/version.ts. Asset releases refresh the module
   // without erasing a visitor's conversation. Storage changes only when the
   // persisted data shape is no longer compatible.
   const WIDGET_RELEASE = {
-    assets: "2026-10-22.5",
+    assets: "2026-10-22.6",
     storage: "2026-10-20.5",
   } as const;
   const STORAGE_VERSION_KEY = "chat-platform:widget-version";
@@ -527,6 +529,7 @@
     assetUrl: data.asset ?? new URL("textbox-160.png", base).href,
     title: data.title || undefined,
     subtitle: data.subtitle || undefined,
+    size,
     accent: data.color || undefined,
     styleNonce: data.styleNonce || script.nonce || undefined,
     welcomeStorageKey: site ? `${WELCOME_SEEN_PREFIX}${site}` : undefined,

@@ -14,6 +14,8 @@ export const widgetStyles = `
 .notice:hover .notice-close,.notice-close:focus-visible{opacity:1}
 @media(hover:none){.notice-close{opacity:1}}
 .panel{display:flex;flex-direction:column;width:300px;height:min(480px,calc(100dvh - 112px));min-height:280px;overflow:hidden;border:1px solid var(--strong);border-radius:18px;background:var(--surface);box-shadow:0 0 0 1px #0003,0 16px 48px -12px #0009;isolation:isolate}
+.widget[data-size=md] .panel{width:280px;height:min(430px,calc(100dvh - 112px))}
+.widget[data-size=sm] .panel{width:260px;height:min(380px,calc(100dvh - 112px))}
 .header{position:relative;z-index:5;flex-shrink:0;padding:13px 14px;background:var(--accent-fill);border-radius:0 0 16px 16px;box-shadow:inset 0 1px 0 #ffffff1f}
 .topline{position:relative;display:flex;align-items:center;justify-content:space-between;gap:8px}
 .identity-text{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);display:flex;flex-direction:column;align-items:center;text-align:center;max-width:calc(100% - 132px)}
@@ -123,7 +125,7 @@ export const widgetStyles = `
 .widget[data-maximized=true] .email-card{width:100%;max-width:720px;margin:0 auto}
 .widget[data-maximized=true] .input{min-height:36px;max-height:120px;padding:8px 12px 2px;font-size:14px}
 @media(hover:hover) and (pointer:fine){.icon-btn:hover{background:#ffffff16}.header-art:hover{background:#ffffff20}.menu-item:hover{background:#ffffff12}.notice-close:hover{background:#ffffff16;color:#fff}.notice-open:hover .notice-body{color:#c9c9c9}.send:hover:not(:disabled){background:color-mix(in srgb,var(--blue) 84%,white)}.launcher:hover{background:color-mix(in srgb,var(--blue) 88%,black)}}
-@media(max-width:480px){.widget{right:max(12px,env(safe-area-inset-right));bottom:max(12px,env(safe-area-inset-bottom));left:12px;gap:10px}.panel{width:100%;height:min(520px,calc(100dvh - 86px));min-height:220px;border-radius:16px}.launcher{width:52px;height:52px}.header{padding:9px 12px;border-radius:0 0 14px 14px}.input{font-size:16px;min-height:44px}}
+@media(max-width:480px){.widget{right:max(12px,env(safe-area-inset-right));bottom:max(12px,env(safe-area-inset-bottom));left:12px;gap:10px}.panel{width:100%;height:min(520px,calc(100dvh - 86px));min-height:220px;border-radius:16px}.widget[data-size] .panel{width:100%;height:min(520px,calc(100dvh - 86px))}.launcher{width:52px;height:52px}.header{padding:9px 12px;border-radius:0 0 14px 14px}.input{font-size:16px;min-height:44px}}
 @media(prefers-reduced-motion:reduce){.loading-art img,.launcher[data-loading=true] .art{animation:none;filter:brightness(.95)}button:active:not(:disabled){transform:none}}
 .typing-row{display:flex;align-items:center;gap:8px;padding:10px 2px 0;font-size:10.5px;color:var(--text-muted)}
 .typing-avatar{position:relative;display:inline-grid;place-items:center;width:18px;height:18px;flex:0 0 18px}
