@@ -1,6 +1,10 @@
-import type { PresetReply } from "@/widget/types";
+import type { PresetReply, WidgetSize } from "@/widget/types";
 
 export const DEFAULT_WELCOME = "Hi! How can we help?";
+
+export function widgetSize(value: unknown): WidgetSize {
+  return value === "sm" || value === "md" ? value : "lg";
+}
 
 export function presetMessages(value: unknown): PresetReply[] {
   if (!Array.isArray(value)) return [];

@@ -473,6 +473,8 @@ export function mountChatWidget(options) {
         }
     }
     function adoptMeta(next) {
+        if (next.widgetSize)
+            widget.dataset.size = next.widgetSize;
         let result = next;
         if (topicPending) {
             const tags = next.conversationTags ?? [];
@@ -1738,6 +1740,8 @@ export function mountChatWidget(options) {
             .then((next) => {
             if (destroyed)
                 return;
+            if (next.widgetSize)
+                widget.dataset.size = next.widgetSize;
             if (opened || openWhenReady) {
                 // They have already seen the widget/welcome; never notify later.
                 if (next.welcomeNotify)

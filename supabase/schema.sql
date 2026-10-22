@@ -89,6 +89,7 @@ alter table sites add column if not exists hours_end int not null default 21;
 alter table sites add column if not exists away_message text not null default 'We usually reply within a few hours.';
 alter table sites add column if not exists welcome_message text not null default 'Hi! How can we help?';
 alter table sites add column if not exists welcome_notify boolean not null default false;
+alter table sites add column if not exists widget_size text not null default 'lg';
 alter table sites add column if not exists preset_messages jsonb not null default '[]'::jsonb;
 alter table sites add column if not exists agent_online_at timestamptz;
 

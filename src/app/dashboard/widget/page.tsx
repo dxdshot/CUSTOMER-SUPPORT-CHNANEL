@@ -8,7 +8,7 @@ import { DashboardButton } from "@/components/block/dashboard-shell";
 import { DEMO_SITE_KEY } from "@/lib/conversations";
 import { useAgentProfile } from "@/lib/agent-profile";
 import { getSupabase } from "@/lib/supabase";
-import { DEFAULT_WELCOME, presetMessages } from "@/lib/widget-copy";
+import { DEFAULT_WELCOME, presetMessages, widgetSize } from "@/lib/widget-copy";
 import { mountChatWidget, type WidgetHandle, type WidgetMessage } from "@/widget/widget";
 import { WIDGET_RELEASE } from "@/widget/version";
 import type { PresetReply, WidgetMeta, WidgetSize } from "@/widget/types";
@@ -19,13 +19,11 @@ const escapeAttribute = (value: string) => value.replaceAll("&", "&amp;").replac
 const WIDGET_SIZES: {
   value: WidgetSize;
   label: string;
-  width: number;
-  height: number;
-  mini: { width: number; height: number };
+  size: number;
 }[] = [
-  { value: "sm", label: "Small", width: 260, height: 380, mini: { width: 35, height: 51 } },
-  { value: "md", label: "Medium", width: 280, height: 430, mini: { width: 40, height: 61 } },
-  { value: "lg", label: "Large", width: 300, height: 480, mini: { width: 46, height: 74 } },
+  { value: "sm", label: "Small", size: 44 },
+  { value: "md", label: "Medium", size: 50 },
+  { value: "lg", label: "Large", size: 56 },
 ];
 
 export default function WidgetPage() {
@@ -46,12 +44,20 @@ export default function WidgetPage() {
   const [siteKey, setSiteKey] = useState(DEMO_SITE_KEY);
   const [copied, setCopied] = useState(false);
   const [size, setSize] = useState<WidgetSize>("lg");
+  const [sizeError, setSizeError] = useState(false);
   const activeSize = WIDGET_SIZES.find((option) => option.value === size) ?? WIDGET_SIZES[2];
   const snippet = `<script src="${WIDGET_ORIGIN}/widget/embed.js?v=${WIDGET_RELEASE.assets}" async\n  data-site="${escapeAttribute(siteKey)}"\n  data-size="${size}"\n  data-color="#2563eb"></script>`;
 
   function chooseSize(next: WidgetSize) {
     setSize(next);
     widget.current?.setSize(next);
+    const client = getSupabase();
+    if (!client) return;
+    void client
+      .from("sites")
+      .update({ widget_size: next })
+      .eq("site_key", DEMO_SITE_KEY)
+      .then(({ error }) => setSizeError(Boolean(error)));
   }
 
   async function copySnippet() {
@@ -83,10 +89,25 @@ export default function WidgetPage() {
       transport: {
         async meta() {
           const profile = profileRef.current;
-          const { data } = await (getSupabase()?.from("sites")
-            .select("welcome_message, preset_messages")
+          const client = getSupabase();
+          const primary = await (client?.from("sites")
+            .select("welcome_message, preset_messages, widget_size")
             .eq("site_key", DEMO_SITE_KEY)
             .maybeSingle() ?? Promise.resolve({ data: null }));
+          let data: {
+            welcome_message?: string | null;
+            preset_messages?: unknown;
+            widget_size?: string | null;
+          } | null = primary.data;
+          if (!data && client) {
+            // Pre-D59 installs: keep the preview working without the size column.
+            const retry = await client
+              .from("sites")
+              .select("welcome_message, preset_messages")
+              .eq("site_key", DEMO_SITE_KEY)
+              .maybeSingle();
+            data = retry.data;
+          }
           presetReplies.current = presetMessages(data?.preset_messages);
           return {
             conversationId: null,
@@ -100,6 +121,7 @@ export default function WidgetPage() {
             awayMessage: profile.awayMessage,
             welcomeMessage: data?.welcome_message || DEFAULT_WELCOME,
             welcomeNotify: false,
+            widgetSize: widgetSize(data?.widget_size),
             presetMessages: presetReplies.current,
             topicOptions: [],
             conversationTags: [],
@@ -153,6 +175,26 @@ export default function WidgetPage() {
     return () => {
       handle.destroy();
       widget.current = null;
+    };
+  }, []);
+
+  useEffect(() => {
+    const client = getSupabase();
+    if (!client) return;
+    let active = true;
+    void client
+      .from("sites")
+      .select("widget_size")
+      .eq("site_key", DEMO_SITE_KEY)
+      .maybeSingle()
+      .then(({ data, error }) => {
+        if (!active || error) return;
+        const next = widgetSize(data?.widget_size);
+        setSize(next);
+        widget.current?.setSize(next);
+      });
+    return () => {
+      active = false;
     };
   }, []);
 
@@ -215,11 +257,11 @@ export default function WidgetPage() {
                 <div>
                   <p className="text-sm font-medium">Widget size</p>
                   <p className="mt-1 text-[11px] leading-4 text-(--obsidian-dashboard-shell-text-subtle)">
-                    Sets the panel footprint below and in the copy snippet.
+                    Sets the floating launcher size below and everywhere the widget is embedded.
                   </p>
                 </div>
                 <span className="shrink-0 rounded-md border border-(--obsidian-dashboard-shell-border) bg-(--obsidian-dashboard-shell-muted) px-2 py-1 font-mono text-[10px] leading-none text-(--obsidian-dashboard-shell-text-subtle)">
-                  {activeSize.width} × {activeSize.height}
+                  {activeSize.size}px
                 </span>
               </div>
               <div role="radiogroup" aria-label="Widget size" className="mt-3 grid grid-cols-3 gap-2">
@@ -232,7 +274,7 @@ export default function WidgetPage() {
                       role="radio"
                       aria-checked={selected}
                       onClick={() => chooseSize(option.value)}
-                      className="relative flex h-[118px] flex-col items-center justify-end gap-2 rounded-lg border p-2 outline-none transition-[border-color,background-color] duration-200 focus-visible:ring-2 focus-visible:ring-(--obsidian-dashboard-shell-ring)"
+                      className="relative flex h-[112px] flex-col items-center justify-center gap-2.5 rounded-lg border p-2 outline-none transition-[border-color,background-color] duration-200 focus-visible:ring-2 focus-visible:ring-(--obsidian-dashboard-shell-ring)"
                       style={{
                         borderColor: selected
                           ? "var(--obsidian-dashboard-shell-accent)"
@@ -242,40 +284,28 @@ export default function WidgetPage() {
                           : "transparent",
                       }}
                     >
-                      {selected && (
-                        <Check aria-hidden className="absolute right-2 top-2 size-3 text-(--obsidian-dashboard-shell-accent)" />
-                      )}
-                      <span aria-hidden className="flex items-end" style={{ height: 76 }}>
-                        <span
-                          className="relative block overflow-hidden rounded-md border shadow-[0_8px_20px_-12px_rgb(0_0_0/0.8)] transition-[width,height] duration-300 ease-out"
+                      <span
+                        aria-hidden
+                        className="grid place-items-center rounded-full shadow-[0_10px_24px_-12px_rgb(0_0_0/0.9)] transition-[width,height,background-color] duration-300 ease-out"
+                        style={{
+                          width: option.size,
+                          height: option.size,
+                          background: selected
+                            ? "var(--obsidian-dashboard-shell-accent)"
+                            : "var(--obsidian-dashboard-shell-muted)",
+                          boxShadow: selected
+                            ? "inset 0 0 0 1px rgba(255, 255, 255, 0.22)"
+                            : "inset 0 0 0 1px var(--obsidian-dashboard-shell-border-strong)",
+                        }}
+                      >
+                        <MessageCircle
+                          aria-hidden
                           style={{
-                            width: option.mini.width,
-                            height: option.mini.height,
-                            borderColor: selected
-                              ? "var(--obsidian-dashboard-shell-accent)"
-                              : "var(--obsidian-dashboard-shell-border-strong)",
-                            background: "var(--obsidian-dashboard-shell-background)",
+                            width: Math.round(option.size * 0.42),
+                            height: Math.round(option.size * 0.42),
+                            color: selected ? "#fff" : "var(--obsidian-dashboard-shell-text-subtle)",
                           }}
-                        >
-                          <span
-                            className="absolute inset-x-1 top-1 h-2 rounded-[2px]"
-                            style={{
-                              background: selected
-                                ? "var(--obsidian-dashboard-shell-accent)"
-                                : "rgba(255, 255, 255, 0.14)",
-                            }}
-                          />
-                          <span className="absolute inset-x-1 top-4 h-1 rounded-full bg-white/10" />
-                          <span className="absolute inset-x-1 top-6 h-1 rounded-full bg-white/10" />
-                          <span
-                            className="absolute bottom-1 right-1 size-1.5 rounded-full"
-                            style={{
-                              background: selected
-                                ? "var(--obsidian-dashboard-shell-accent)"
-                                : "rgba(255, 255, 255, 0.16)",
-                            }}
-                          />
-                        </span>
+                        />
                       </span>
                       <span
                         className="text-[11px] font-medium"
@@ -285,12 +315,17 @@ export default function WidgetPage() {
                             : "var(--obsidian-dashboard-shell-text-subtle)",
                         }}
                       >
-                        {option.label}
+                        {option.label} · {option.size}px
                       </span>
                     </button>
                   );
                 })}
               </div>
+              {sizeError && (
+                <p className="mt-2 text-[11px] leading-4 text-(--obsidian-dashboard-shell-danger)">
+                  Could not sync the size. Run the widget size migration to apply it everywhere.
+                </p>
+              )}
             </div>
             <div className="mt-4 flex flex-wrap gap-2">
               <DashboardButton variant="primary" onClick={() => widget.current?.open()}><MessageCircle aria-hidden />Open chat</DashboardButton>

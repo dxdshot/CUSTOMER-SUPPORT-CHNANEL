@@ -492,6 +492,7 @@ export function mountChatWidget(options: WidgetOptions): WidgetHandle {
     }
   }
   function adoptMeta(next: WidgetMeta): WidgetMeta {
+    if (next.widgetSize) widget.dataset.size = next.widgetSize;
     let result = next;
     if (topicPending) {
       const tags = next.conversationTags ?? [];
@@ -1718,6 +1719,7 @@ export function mountChatWidget(options: WidgetOptions): WidgetHandle {
     void options.transport.initialMeta(welcomeAbort.signal)
       .then((next) => {
         if (destroyed) return;
+        if (next.widgetSize) widget.dataset.size = next.widgetSize;
         if (opened || openWhenReady) {
           // They have already seen the widget/welcome; never notify later.
           if (next.welcomeNotify) markWelcomeSeen();

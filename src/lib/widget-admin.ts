@@ -16,6 +16,8 @@ export type WidgetSite = {
   away_message: string;
   welcome_message: string;
   welcome_notify: boolean;
+  /** Launcher size preference; pre-migration installs default to lg. */
+  widget_size: string | null;
   preset_messages: unknown;
   /** Site tags offered as topic choices (D47). Empty when none exist. */
   tags: string[];
@@ -45,20 +47,30 @@ export async function widgetSite(siteKey: string): Promise<WidgetSite | null> {
   let data: Record<string, unknown> | null = null;
   const primary = await supabase
     .from("sites")
-    .select(`${baseSelect}, welcome_notify`)
+    .select(`${baseSelect}, welcome_notify, widget_size`)
     .eq("site_key", siteKey)
     .maybeSingle();
   if (primary.data) {
     data = primary.data as Record<string, unknown>;
   } else if (primary.error) {
-    // Pre-D50 installs: keep the widget working with notifications off.
-    const fallback = await supabase
+    // Pre-D58 installs: retry without the launcher-size column.
+    const withNotify = await supabase
       .from("sites")
-      .select(baseSelect)
+      .select(`${baseSelect}, welcome_notify`)
       .eq("site_key", siteKey)
       .maybeSingle();
-    if (!fallback.data) return null;
-    data = { ...(fallback.data as Record<string, unknown>), welcome_notify: false };
+    if (withNotify.data) {
+      data = { ...(withNotify.data as Record<string, unknown>), widget_size: "lg" };
+    } else {
+      // Pre-D50 installs: keep the widget working with notifications off.
+      const fallback = await supabase
+        .from("sites")
+        .select(baseSelect)
+        .eq("site_key", siteKey)
+        .maybeSingle();
+      if (!fallback.data) return null;
+      data = { ...(fallback.data as Record<string, unknown>), welcome_notify: false, widget_size: "lg" };
+    }
   } else {
     return null;
   }

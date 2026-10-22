@@ -26,6 +26,8 @@ export type WidgetMeta = {
   welcomeMessage: string;
   /** Show the welcome message as a sound-only notification while closed (D50). */
   welcomeNotify: boolean;
+  /** Site-wide launcher size; drives the floating circle everywhere. */
+  widgetSize?: WidgetSize;
   presetMessages: PresetReply[];
   /** Site tags offered after the first message (D47). */
   topicOptions: string[];

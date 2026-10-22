@@ -2,7 +2,7 @@ import { widgetMessageRequest } from "@/lib/widget-requests";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { NextResponse, type NextRequest } from "next/server";
 import { widgetClient, widgetSite, type WidgetSite } from "@/lib/widget-admin";
-import { DEFAULT_WELCOME, presetMessages } from "@/lib/widget-copy";
+import { DEFAULT_WELCOME, presetMessages, widgetSize } from "@/lib/widget-copy";
 
 /*
  * Widget backend: the embed script ships dependency-free, so it talks to
@@ -209,6 +209,7 @@ export async function GET(request: NextRequest) {
         awayMessage: awayFor(null),
         welcomeMessage: site.welcome_message?.trim() || DEFAULT_WELCOME,
         welcomeNotify: Boolean(site.welcome_notify),
+        widgetSize: widgetSize(site.widget_size),
         presetMessages: presetMessages(site.preset_messages),
         topicOptions: site.tags,
         conversationTags: [],
@@ -271,6 +272,7 @@ export async function GET(request: NextRequest) {
       awayMessage: awayFor(conversation.last_agent_id),
       welcomeMessage: site.welcome_message?.trim() || DEFAULT_WELCOME,
       welcomeNotify: Boolean(site.welcome_notify),
+      widgetSize: widgetSize(site.widget_size),
       presetMessages: presetMessages(site.preset_messages),
       topicOptions: site.tags,
       conversationTags: conversation.tags ?? [],

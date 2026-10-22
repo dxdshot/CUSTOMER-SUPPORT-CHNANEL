@@ -40,7 +40,7 @@
   // without erasing a visitor's conversation. Storage changes only when the
   // persisted data shape is no longer compatible.
   const WIDGET_RELEASE = {
-    assets: "2026-10-22.6",
+    assets: "2026-10-22.7",
     storage: "2026-10-20.5",
   } as const;
   const STORAGE_VERSION_KEY = "chat-platform:widget-version";
@@ -90,6 +90,7 @@
     awayMessage: string;
     welcomeMessage: string;
     welcomeNotify: boolean;
+    widgetSize?: "sm" | "md" | "lg";
     presetMessages: { question: string; answer: string }[];
     topicOptions: string[];
     conversationTags: string[];
