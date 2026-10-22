@@ -42,6 +42,31 @@ function element<K extends keyof HTMLElementTagNameMap>(tag: K, className: strin
   return node;
 }
 
+// The welcome copy is plain text, so a pasted URL would otherwise read as a dead
+// string. Split it into text nodes and real anchors, trailing punctuation intact.
+const linkPattern = /(?<![\w@])(?:https?:\/\/|www\.)?(?:[a-z0-9-]+\.)+[a-z]{2,}(?:\/[^\s<>"']*)?/gi;
+
+function linkify(text: string): DocumentFragment {
+  const fragment = document.createDocumentFragment();
+  let cursor = 0;
+  for (const match of text.matchAll(linkPattern)) {
+    const start = match.index ?? 0;
+    if (start > cursor) fragment.append(text.slice(cursor, start));
+    const raw = match[0];
+    const trimmed = raw.replace(/[.,!?;:)\]]+$/, "");
+    const anchor = document.createElement("a");
+    anchor.href = /^https?:\/\//i.test(trimmed) ? trimmed : `https://${trimmed}`;
+    anchor.textContent = trimmed;
+    anchor.target = "_blank";
+    anchor.rel = "noopener noreferrer";
+    fragment.append(anchor);
+    if (trimmed.length < raw.length) fragment.append(raw.slice(trimmed.length));
+    cursor = start + raw.length;
+  }
+  if (cursor < text.length) fragment.append(text.slice(cursor));
+  return fragment;
+}
+
 function presenceDot(online: boolean) {
   const dot = document.createElement("span");
   dot.className = `presence-dot ${online ? "online" : "offline"}`;
@@ -956,7 +981,7 @@ export function mountChatWidget(options: WidgetOptions): WidgetHandle {
       const avatar = element("span", "avatar");
       avatar.append(art());
       const welcome = element("p", "bubble");
-      welcome.textContent = meta?.welcomeMessage?.trim() || "Hi! How can we help?";
+      welcome.append(linkify(meta?.welcomeMessage?.trim() || "Hi! How can we help?"));
       greeting.append(avatar, welcome);
       list.prepend(greeting);
     }

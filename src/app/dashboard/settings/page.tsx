@@ -145,7 +145,7 @@ export default function SettingsPage() {
     if (saving || loadingSite) return;
     setSaving(true);
     setNotice("");
-    const welcome = (siteDraft.welcome ?? siteCopy.welcome).trim().slice(0, 200) || DEFAULT_WELCOME;
+    const welcome = (siteDraft.welcome ?? siteCopy.welcome).trim() || DEFAULT_WELCOME;
     const draftPresets = siteDraft.presets ?? siteCopy.presets;
     const presets = presetMessages(draftPresets);
     if (draftPresets.some((preset) => Boolean(preset.question.trim()) !== Boolean(preset.answer.trim()))) {
@@ -254,11 +254,14 @@ export default function SettingsPage() {
             <div className="mt-4 space-y-4">
               <label className="block">
                 <span className="mb-1.5 block text-xs font-medium">Welcome message</span>
-                <textarea rows={2} maxLength={200} className={`${fieldClass} resize-none`}
+                <textarea rows={6} className={`${fieldClass} resize-y`}
                   value={siteDraft.welcome ?? siteCopy.welcome}
                   onChange={(event) => setSiteDraft((current) => ({ ...current, welcome: event.target.value }))} />
+                <span className="mt-1.5 block text-[11px] leading-4 text-(--obsidian-dashboard-shell-text-subtle)">
+                  Links are clickable in the widget.
+                </span>
               </label>
-              <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-2.5">
                 <span className="text-xs font-medium">Welcome notification</span>
                 <button
                   type="button"
