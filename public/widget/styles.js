@@ -24,7 +24,6 @@ export const widgetStyles = `
 .actions{position:relative;display:flex;align-items:center;gap:2px}
 .icon-btn{display:grid;place-items:center;width:26px;height:26px;min-width:26px;min-height:26px;padding:0;border:0;background:transparent;border-radius:7px;color:#fff}.icon-btn svg{width:16px;height:16px;flex-shrink:0}
 .header-art{width:40px;height:40px;flex:0 0 40px;padding:0;display:grid;place-items:center;border-radius:50%;background:var(--blue);border:1px solid #ffffff25;overflow:hidden}.header-art img{width:74%;height:74%;min-width:0;min-height:0}.header-art .art-pending{width:74%;height:74%;min-width:0;min-height:0}
-.header-art .header-agent-photo{width:100%;height:100%;object-fit:cover}.header-agent-initial{display:grid;place-items:center;width:100%;height:100%;font-size:18px;font-weight:600;color:#fff}
 .title{font-size:17px;font-weight:600;letter-spacing:-.3px;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .subtitle{margin-top:2px;font-size:11px;color:#e1eaff;line-height:1.4;display:flex;align-items:center;justify-content:center;gap:5px}
 .status-avatar-wrap{position:relative;width:14px;height:14px;flex:0 0 14px;display:inline-grid;place-items:center;border-radius:50%}

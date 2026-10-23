@@ -520,8 +520,8 @@ export function mountChatWidget(options) {
             launcher.setAttribute("aria-busy", "true");
         else
             launcher.removeAttribute("aria-busy");
-        // Presence line; only an agent typing in or viewing this exact thread gets
-        // an identity. Otherwise the line is the site/agent away copy with no avatar.
+        // Presence line keeps the workspace artwork in the top-left button. The
+        // agent identity belongs beside the online/offline or here status.
         const viewing = meta?.agentsViewing ?? [];
         const typingAgent = meta?.agentTyping ? (meta.typingAgent ?? { name: "Support" }) : null;
         const onlineIds = new Set((meta?.onlineAgents ?? []).map((agent) => agent.id));
@@ -534,9 +534,6 @@ export function mountChatWidget(options) {
                 avatar: lastAgentMessage.authorAvatar,
             }
             : null;
-        // Header identity is strictly live: only an agent typing in or actively
-        // viewing this exact conversation gets a name/photo. Otherwise the brand
-        // artwork plus Support online/offline (at least one agent heartbeat).
         const supportOnline = (meta?.onlineAgents?.length ?? 0) > 0;
         const lead = typingAgent ?? viewing[0];
         const statusText = !meta
@@ -551,52 +548,34 @@ export function mountChatWidget(options) {
                         ? `${viewing[0].name} is here`
                         : `${viewing.length} agents here`;
         const statusOnline = lead ? true : supportOnline;
-        // Keep the name and presence copy tied to this thread while the large
-        // header avatar falls back to the workspace agent.
-        const headerAgent = lead ?? meta?.supportAgent ?? meta?.onlineAgents?.[0];
-        const headerState = JSON.stringify([statusText, statusOnline, lead?.id, lead?.name, lead?.avatar, headerAgent?.id, headerAgent?.name, headerAgent?.avatar]);
+        const statusAgent = lead ?? meta?.supportAgent ?? meta?.onlineAgents?.[0] ?? null;
+        const headerState = JSON.stringify([
+            statusText,
+            statusOnline,
+            statusAgent?.id,
+            statusAgent?.name,
+            statusAgent?.avatar,
+        ]);
         if (headerState !== renderedHeaderState) {
             renderedHeaderState = headerState;
-            homeButton.replaceChildren();
-            if (headerAgent) {
-                if (headerAgent.avatar) {
-                    const photo = element("img", "header-agent-photo");
-                    photo.src = headerAgent.avatar;
-                    photo.alt = "";
-                    photo.addEventListener("error", () => {
-                        const initial = element("span", "header-agent-initial");
-                        initial.textContent = headerAgent.name.slice(0, 1).toUpperCase();
-                        photo.replaceWith(initial);
-                    }, { once: true });
-                    homeButton.append(photo);
-                }
-                else {
-                    const initial = element("span", "header-agent-initial");
-                    initial.textContent = headerAgent.name.slice(0, 1).toUpperCase();
-                    homeButton.append(initial);
-                }
-            }
-            else {
-                homeButton.append(art());
-            }
             statusLine.replaceChildren();
             if (statusText) {
-                if (lead) {
+                if (statusAgent) {
                     const avatarWrap = element("span", "status-avatar-wrap");
-                    if (lead.avatar) {
+                    if (statusAgent.avatar) {
                         const photo = element("img", "");
-                        photo.src = lead.avatar;
+                        photo.src = statusAgent.avatar;
                         photo.alt = "";
                         photo.addEventListener("error", () => {
                             const initial = element("span", "status-initial");
-                            initial.textContent = (lead.name || "S").slice(0, 1).toUpperCase();
+                            initial.textContent = (statusAgent.name || "S").slice(0, 1).toUpperCase();
                             photo.replaceWith(initial);
                         }, { once: true });
                         avatarWrap.append(photo);
                     }
                     else {
                         const initial = element("span", "status-initial");
-                        initial.textContent = (lead.name || "S").slice(0, 1).toUpperCase();
+                        initial.textContent = (statusAgent.name || "S").slice(0, 1).toUpperCase();
                         avatarWrap.append(initial);
                     }
                     avatarWrap.append(presenceDot(statusOnline));

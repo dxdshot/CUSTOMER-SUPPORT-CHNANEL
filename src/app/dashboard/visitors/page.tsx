@@ -104,7 +104,13 @@ export default function VisitorsPage() {
     const visitors = [...latest.values()].map((row) => ({ row, profile: toVisitor(row, counts.get(row.visitor_id) ?? 1) }));
     const dots: MapDot[] = visitors.flatMap(({ row, profile }) => {
       const point = locations[row.country || ""];
-      return point ? [{ id: row.visitor_id, lat: point[0], lng: point[1], label: profile.name }] : [];
+      return point
+        ? [{
+            id: row.visitor_id,
+            start: { lat: point[0], lng: point[1], label: profile.name },
+            end: { lat: point[0], lng: point[1], label: profile.name },
+          }]
+        : [];
     });
     return {
       visitors, dots, unique: new Set(visits.map((row) => row.visitor_id)).size, visits: visits.length,
