@@ -25,8 +25,17 @@ import { getSupabase } from "@/lib/supabase";
 import { cn } from "@/lib/utils";
 
 const SIDEBAR_WIDTH_KEY = "chat-platform:sidebar-width";
+const REPOSITORY_URL = "https://github.com/dxdshot/CUSTOMER-SUPPORT-CHNANEL";
 const sidebarListeners = new Set<() => void>();
 let cachedSidebarWidth: number | undefined;
+
+function GitHubMark() {
+  return (
+    <svg aria-hidden viewBox="0 0 16 16" className="size-4 fill-current text-[#181717] dark:text-[#f0f6fc]">
+      <path d="M8 0C3.58 0 0 3.64 0 8.13c0 3.59 2.29 6.64 5.47 7.71.4.08.55-.18.55-.39 0-.19-.01-.83-.01-1.51-2.01.38-2.53-.5-2.69-.96-.09-.23-.48-.96-.82-1.15-.28-.15-.68-.53-.01-.54.63-.01 1.08.59 1.23.83.72 1.23 1.87.88 2.33.67.07-.53.28-.88.51-1.08-1.78-.21-3.64-.91-3.64-4.02 0-.89.31-1.62.82-2.19-.08-.21-.36-1.04.08-2.16 0 0 .67-.22 2.2.84A7.45 7.45 0 0 1 8 3.9c.68 0 1.36.09 2 .27 1.53-1.06 2.2-.84 2.2-.84.44 1.12.16 1.95.08 2.16.51.57.82 1.3.82 2.19 0 3.12-1.87 3.81-3.65 4.02.29.25.54.73.54 1.49 0 1.08-.01 1.95-.01 2.22 0 .22.15.47.55.39A8.15 8.15 0 0 0 16 8.13C16 3.64 12.42 0 8 0Z" />
+    </svg>
+  );
+}
 
 function readSidebarWidth() {
   if (cachedSidebarWidth !== undefined) return cachedSidebarWidth;
@@ -226,6 +235,15 @@ export function AppShell({
         toolbarActions={toolbarActions}
         headerActions={
           <>
+            <a
+              href={REPOSITORY_URL}
+              target="_blank"
+              rel="noreferrer"
+              aria-label="Open repository on GitHub"
+              className="inline-flex size-[30px] shrink-0 cursor-pointer items-center justify-center rounded-md text-(--obsidian-dashboard-shell-text-subtle) outline-none transition-[background-color,color,box-shadow,scale] duration-150 ease-[cubic-bezier(0.25,1,0.5,1)] hover:bg-(--obsidian-dashboard-shell-muted) hover:text-(--obsidian-dashboard-shell-foreground) active:scale-[0.97] active:duration-75 focus-visible:ring-2 focus-visible:ring-(--obsidian-dashboard-shell-ring) motion-reduce:transition-none motion-reduce:active:scale-100"
+            >
+              <GitHubMark />
+            </a>
             <DashboardPopover>
               <DashboardPopoverTrigger asChild>
                 <DashboardButton variant="ghost" size="icon" aria-label="Notifications">
