@@ -2,6 +2,7 @@
 
 import { Search } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { BrandSpinner } from "@/components/ui/brand-spinner";
 import type { Conversation } from "@/lib/mock-data";
 import { TypingDots } from "./typing-dots";
 import { VisitorAvatar } from "./visitor-avatar";
@@ -50,7 +51,7 @@ export function ConversationList({
       <div className="obsidian-dashboard-shell-scroll min-h-0 flex-1 overflow-y-auto pb-4">
         {conversations.length === 0 ? (
           <p className="px-4 py-8 text-center text-xs leading-relaxed text-(--obsidian-dashboard-shell-text-subtle)">
-            {loading ? "Loading conversations…" : "No conversations match these filters."}
+            {loading ? <BrandSpinner label="Loading conversations" /> : "No conversations match these filters."}
           </p>
         ) : (
           <ul>

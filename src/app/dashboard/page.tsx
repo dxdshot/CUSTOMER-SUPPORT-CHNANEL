@@ -4,6 +4,7 @@ import { Suspense, useMemo, useState } from "react";
 import { AppShell } from "@/components/app-shell";
 import { DashboardFilterMenu } from "@/components/block/dashboard-shell";
 import { InboxView, type InboxSort, type InboxTab } from "@/components/inbox/inbox-view";
+import { BrandSpinner } from "@/components/ui/brand-spinner";
 import { DEMO_SITE_KEY } from "@/lib/conversations";
 import { useTags } from "@/lib/tags";
 
@@ -51,7 +52,7 @@ export default function InboxPage() {
         </>
       }
     >
-      <Suspense fallback={<p className="p-6 text-sm">Loading inbox…</p>}>
+      <Suspense fallback={<div className="flex min-h-full items-center justify-center p-6"><BrandSpinner label="Loading inbox" /></div>}>
         <InboxView tab={tab} sort={sort} tag={activeTag} availableTags={tags} />
       </Suspense>
     </AppShell>

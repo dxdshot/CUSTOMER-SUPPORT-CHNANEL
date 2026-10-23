@@ -438,7 +438,9 @@ export function mountChatWidget(options) {
         historyList.replaceChildren();
         if (historyLoading) {
             const p = element("p", "history-empty");
-            p.textContent = "Loading…";
+            p.setAttribute("role", "status");
+            p.setAttribute("aria-label", "Loading past conversations");
+            p.append(element("span", "history-spinner"));
             historyList.append(p);
             return;
         }

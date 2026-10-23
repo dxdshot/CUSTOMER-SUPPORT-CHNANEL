@@ -15,6 +15,7 @@ import {
   DashboardPopoverTrigger,
 } from "@/components/block/dashboard-shell";
 import { cn } from "@/lib/utils";
+import { BrandSpinner } from "@/components/ui/brand-spinner";
 import { useCannedResponses } from "@/lib/canned-store";
 import { getSupabase } from "@/lib/supabase";
 import { currentAgent, type CannedResponse, type Conversation, type ConversationStatus, type Message } from "@/lib/mock-data";
@@ -244,9 +245,7 @@ export function ConversationThread({
         {/* The readable column keeps long lines from stretching on wide screens. */}
         <div className="w-full max-w-3xl">
           {conversation.historyLoaded === false && (
-            <p className="py-8 text-center text-xs text-(--obsidian-dashboard-shell-text-subtle)">
-              Loading messages…
-            </p>
+            <div className="flex justify-center py-8"><BrandSpinner label="Loading messages" /></div>
           )}
           <ol>
             {messages.map((message, index) => (

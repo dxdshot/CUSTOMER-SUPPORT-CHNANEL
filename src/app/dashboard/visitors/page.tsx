@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { AppShell } from "@/components/app-shell";
 import { VisitorSheet } from "@/components/inbox/visitor-sheet";
+import { BrandSpinner } from "@/components/ui/brand-spinner";
 import WorldMap, { type MapDot } from "@/components/ui/world-map";
 import { DEMO_SITE_KEY, siteIdFor } from "@/lib/conversations";
 import type { Visitor } from "@/lib/mock-data";
@@ -62,11 +63,22 @@ async function loadSessions(): Promise<Session[] | null> {
   }
 }
 
-function MetricCard({ label, value }: { label: string; value: string }) {
+type MetricValue =
+  | { state: "loading" }
+  | { state: "ready"; value: string }
+  | { state: "unavailable" };
+
+function MetricCard({ label, value }: { label: string; value: MetricValue }) {
   return (
     <div className="flex min-h-[88px] flex-col justify-between rounded-[16px] border border-[#343434] bg-[#252525] px-4 py-3.5 shadow-[inset_0_1px_0_rgb(255_255_255/0.025)]">
       <span className="text-[14px] font-medium leading-5 text-[#aaa]">{label}</span>
-      <strong className="text-[26px] font-semibold leading-7 tabular-nums text-white">{value}</strong>
+      {value.state === "loading" ? (
+        <BrandSpinner label={`Loading ${label}`} className="h-7 text-[#3b82f6]" />
+      ) : value.state === "ready" ? (
+        <strong className="text-[26px] font-semibold leading-7 tabular-nums text-white">{value.value}</strong>
+      ) : (
+        <span className="text-xs font-medium text-[#aaa]">Unavailable</span>
+      )}
     </div>
   );
 }
@@ -118,14 +130,19 @@ export default function VisitorsPage() {
     };
   }, [sessions, refreshedAt]);
   const selected = data.visitors.find(({ profile }) => profile.id === selectedId)?.profile;
+  const metricValue = (value: string): MetricValue => {
+    if (!loaded) return { state: "loading" };
+    if (error) return { state: "unavailable" };
+    return { state: "ready", value };
+  };
 
   return (
     <AppShell title="Live visitors">
       <div className="relative flex min-h-full flex-col gap-6 bg-[#161616] p-5 text-white md:p-8">
         <div className="grid gap-4 md:grid-cols-3">
-          <MetricCard label="Visitors" value={loaded && !error ? String(data.unique) : "—"} />
-          <MetricCard label="Visits" value={loaded && !error ? String(data.visits) : "—"} />
-          <MetricCard label="Bounce rate" value={loaded && !error ? `${data.bounce}%` : "—"} />
+          <MetricCard label="Visitors" value={metricValue(String(data.unique))} />
+          <MetricCard label="Visits" value={metricValue(String(data.visits))} />
+          <MetricCard label="Bounce rate" value={metricValue(`${data.bounce}%`)} />
         </div>
         <section className="space-y-4">
           <div className="flex items-baseline justify-between gap-4">

@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { cn } from "@/lib/utils";
+import { BrandSpinner } from "@/components/ui/brand-spinner";
 import { failMessage, receiveMessage } from "@/lib/message-state";
 import { getSupabase } from "@/lib/supabase";
 import { useAgentProfile } from "@/lib/agent-profile";
@@ -463,11 +464,11 @@ export function InboxView({
         />
       ) : (
         <div className="flex flex-1 items-center justify-center p-6">
-          <p className="max-w-xs text-center text-xs leading-relaxed text-(--obsidian-dashboard-shell-text-subtle)">
+          <div className="max-w-xs text-center text-xs leading-relaxed text-(--obsidian-dashboard-shell-text-subtle)">
             {loaded
               ? "No conversations match these filters. Clear the search or switch tabs to see more."
-              : "Loading conversations…"}
-          </p>
+              : <BrandSpinner label="Loading conversations" />}
+          </div>
         </div>
       )}
 

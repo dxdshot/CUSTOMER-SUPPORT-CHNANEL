@@ -133,7 +133,7 @@ export const widgetStyles = `
 .widget[data-maximized=true] .input{min-height:36px;max-height:120px;padding:8px 12px 2px;font-size:14px}
 @media(hover:hover) and (pointer:fine){.icon-btn:hover{background:#ffffff16}.header-art:hover{background:#ffffff20}.menu-item:hover{background:#ffffff12}.notice-close:hover{background:#ffffff16;color:#fff}.notice-open:hover .notice-body{color:#c9c9c9}.send:hover:not(:disabled){background:color-mix(in srgb,var(--blue) 84%,white)}.launcher:hover{background:color-mix(in srgb,var(--blue) 88%,black)}}
 @media(max-width:480px){.widget{right:max(12px,env(safe-area-inset-right));bottom:max(12px,env(safe-area-inset-bottom));left:12px;gap:10px}.panel{width:100%;height:min(520px,calc(100dvh - 86px));min-height:220px;border-radius:16px}.launcher{width:52px;height:52px}.header{padding:9px 12px;border-radius:0 0 14px 14px}.input{font-size:16px;min-height:44px}}
-@media(prefers-reduced-motion:reduce){.loading-art img,.launcher[data-loading=true] .art{animation:none;filter:brightness(.95)}button:active:not(:disabled){transform:none}}
+@media(prefers-reduced-motion:reduce){.loading-art img,.launcher[data-loading=true] .art,.history-spinner{animation:none;filter:brightness(.95)}button:active:not(:disabled){transform:none}}
 .typing-row{display:flex;align-items:center;gap:6px;padding:10px 2px 0;font-size:10.5px;color:var(--text-muted)}
 .typing-avatar{position:relative;display:inline-grid;place-items:center;width:22px;height:22px;flex:0 0 22px}
 .typing-avatar-wrap{position:relative;display:inline-grid;place-items:center;width:100%;height:100%;border-radius:50%}
@@ -155,7 +155,7 @@ export const widgetStyles = `
 .history-new{display:flex;align-items:center;justify-content:center;gap:6px;margin:4px auto 0;padding:10px 18px;border:0;border-radius:999px;background:var(--blue);color:#fff;font-size:12px;font-weight:600;align-self:center}
 .history-new svg{width:15px;height:15px}
 .history-new:disabled{opacity:.6}
-.history-empty{padding:18px 8px;text-align:center;font-size:11.5px;color:var(--text-muted)}
+.history-empty{padding:18px 8px;text-align:center;font-size:11.5px;color:var(--text-muted)}.history-spinner{display:inline-block;width:18px;height:18px;border:2px solid color-mix(in srgb,var(--blue) 28%,transparent);border-top-color:var(--blue);border-radius:50%;animation:spin .7s linear infinite}@keyframes spin{to{transform:rotate(1turn)}}
 .ended{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;height:100%;min-height:180px;padding:0 12px;text-align:center}
 .ended-avatar{display:grid;place-items:center;width:44px;height:44px;border-radius:50%;background:var(--blue);overflow:hidden;margin-bottom:2px}
 .ended-avatar-img{width:100%;height:100%;object-fit:cover}
