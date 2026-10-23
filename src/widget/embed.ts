@@ -40,7 +40,7 @@
   // without erasing a visitor's conversation. Storage changes only when the
   // persisted data shape is no longer compatible.
   const WIDGET_RELEASE = {
-    assets: "2026-10-23.2",
+    assets: "2026-10-23.3",
     storage: "2026-10-20.5",
   } as const;
   const STORAGE_VERSION_KEY = "chat-platform:widget-version";
@@ -86,6 +86,7 @@
     agentTyping: boolean;
     typingAgent: { id?: string; name: string; avatar?: string } | null;
     onlineAgents: { id: string; name: string; avatar?: string }[];
+    supportAgent: { id: string; name: string; avatar?: string } | null;
     online: boolean;
     awayMessage: string;
     welcomeMessage: string;
@@ -233,6 +234,44 @@
     ...visitorContext,
     page: `${window.location.pathname}${window.location.search}`,
   });
+
+  const sessionId = (() => {
+    const key = `chat-platform:session:${site}`;
+    try {
+      const saved = window.sessionStorage.getItem(key);
+      if (saved && !hostChangedVisitor) return saved;
+      const fresh = crypto.randomUUID();
+      window.sessionStorage.setItem(key, fresh);
+      return fresh;
+    } catch {
+      return `session-${Date.now()}-${Math.random()}`;
+    }
+  })();
+  let trackedPage = "";
+  const trackPresence = (view: boolean) => {
+    const context = currentVisitorContext();
+    const person = readIdentity();
+    void fetch(`${api}/presence`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        site, visitor: visitorId, session: sessionId, view,
+        name: person.name, email: person.email, ...context,
+      }),
+      keepalive: true,
+    }).catch(() => {});
+    trackedPage = context.page;
+  };
+  trackPresence(true);
+  window.setInterval(() => {
+    if (document.visibilityState === "visible" && currentVisitorContext().page !== trackedPage) {
+      trackPresence(true);
+    }
+  }, 1_000);
+  window.setInterval(() => {
+    if (document.visibilityState !== "visible") return;
+    trackPresence(false);
+  }, 30_000);
 
   const apiTransport = (baseUrl: string, siteKey: string, visitor: string) => {
     const seen = new Set<string>();

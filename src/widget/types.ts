@@ -21,6 +21,7 @@ export type WidgetMeta = {
   typingAgent: { id?: string; name: string; avatar?: string } | null;
   /** Agents whose dashboard heartbeat is fresh (D39). */
   onlineAgents: { id: string; name: string; avatar?: string }[];
+  supportAgent: { id: string; name: string; avatar?: string } | null;
   online: boolean;
   awayMessage: string;
   welcomeMessage: string;

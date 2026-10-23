@@ -569,12 +569,32 @@ export function mountChatWidget(options: WidgetOptions): WidgetHandle {
             ? `${viewing[0].name} is here`
             : `${viewing.length} agents here`;
     const statusOnline = lead ? true : supportOnline;
-    // A specific agent's photo/initial appears only while that agent is in this
-    // exact thread. The support-wide line is a status, not a person, so it
-    // carries just the dot — never an avatar (D60).
-    const headerState = JSON.stringify([statusText, statusOnline, lead?.id, lead?.name, lead?.avatar]);
+    // Keep the name and presence copy tied to this thread while the large
+    // header avatar falls back to the workspace agent.
+    const headerAgent = lead ?? meta?.supportAgent ?? meta?.onlineAgents?.[0];
+    const headerState = JSON.stringify([statusText, statusOnline, lead?.id, lead?.name, lead?.avatar, headerAgent?.id, headerAgent?.name, headerAgent?.avatar]);
     if (headerState !== renderedHeaderState) {
       renderedHeaderState = headerState;
+      homeButton.replaceChildren();
+      if (headerAgent) {
+        if (headerAgent.avatar) {
+          const photo = element("img", "header-agent-photo");
+          photo.src = headerAgent.avatar;
+          photo.alt = "";
+          photo.addEventListener("error", () => {
+            const initial = element("span", "header-agent-initial");
+            initial.textContent = headerAgent.name.slice(0, 1).toUpperCase();
+            photo.replaceWith(initial);
+          }, { once: true });
+          homeButton.append(photo);
+        } else {
+          const initial = element("span", "header-agent-initial");
+          initial.textContent = headerAgent.name.slice(0, 1).toUpperCase();
+          homeButton.append(initial);
+        }
+      } else {
+        homeButton.append(art());
+      }
       statusLine.replaceChildren();
       if (statusText) {
         if (lead) {

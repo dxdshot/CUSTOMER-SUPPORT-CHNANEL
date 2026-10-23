@@ -174,6 +174,9 @@ export async function GET(request: NextRequest) {
   const onlineAgents = activeAgents
     .filter((agent) => agent.last_seen_at && agent.last_seen_at > onlineSince)
     .map((agent) => ({ id: agent.id, name: agent.name || "Agent", avatar: agent.avatar_url || undefined }));
+  const supportAgent = activeAgents[0]
+    ? { id: activeAgents[0].id, name: activeAgents[0].name || "Agent", avatar: activeAgents[0].avatar_url || undefined }
+    : null;
   // Prefer the agent who replied last; otherwise the most recently active one.
   const awayFor = (agentId?: string | null) => {
     const match = agentId ? activeAgents.find((agent) => agent.id === agentId) : undefined;
@@ -214,6 +217,7 @@ export async function GET(request: NextRequest) {
         topicOptions: site.tags,
         conversationTags: [],
         onlineAgents,
+        supportAgent,
         csat: null,
         visitorName: null,
         visitorEmail: null,
@@ -268,6 +272,7 @@ export async function GET(request: NextRequest) {
           }
         : null,
       onlineAgents,
+      supportAgent,
       online: onlineNow(site),
       awayMessage: awayFor(conversation.last_agent_id),
       welcomeMessage: site.welcome_message?.trim() || DEFAULT_WELCOME,

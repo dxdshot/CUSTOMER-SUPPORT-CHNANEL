@@ -29,6 +29,11 @@ export type WidgetMeta = {
         name: string;
         avatar?: string;
     }[];
+    supportAgent: {
+        id: string;
+        name: string;
+        avatar?: string;
+    } | null;
     online: boolean;
     awayMessage: string;
     welcomeMessage: string;

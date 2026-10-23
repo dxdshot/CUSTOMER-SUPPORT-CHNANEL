@@ -117,6 +117,7 @@ export default function WidgetPage() {
             agentTyping: false,
             typingAgent: null,
             onlineAgents: [{ id: profile.id, name: profile.name, avatar: profile.avatarUrl }],
+            supportAgent: { id: profile.id, name: profile.name, avatar: profile.avatarUrl },
             online: true,
             awayMessage: profile.awayMessage,
             welcomeMessage: data?.welcome_message || DEFAULT_WELCOME,
