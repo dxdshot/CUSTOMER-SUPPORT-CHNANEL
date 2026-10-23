@@ -255,8 +255,8 @@ feedback AND no ghosts.
   Default title: **"Your conversation"** (D33).
 - One right-side button: **maximize/minimize** (corner-bracket icons). The old ⋯ menu and
   the separate clock button are gone (D29, D33).
-- The subtitle slot carries **presence**: "Online" or "Away" (no away-message text),
-  replaced by "Support is typing…" while the agent types (D32, D34).
+- The subtitle slot carries **presence**: "Support is online" or "Support is offline" with
+  just a green/grey dot, replaced by "<name> is typing…" while an agent types (D49/D60).
 - Solid brand disc, solid dots, fixed stacking (`header z-index:5`) — see D29/D30.
 
 ### Tier-1 support features (D32–D34)
@@ -268,10 +268,10 @@ unread          conversations.unread_count (trigger +1 visitor, 0 agent/read) (D
 history         left brand button → flat rows (avatar, "You, date", lastMessage,
                 chevron), bottom "Start new conversation" pill; no cards (D33)
                 cached 30s, loads on the first history open (D42)
-profile         agent name/avatar/away message in localStorage → agents table + 30s
+profile         agent name/avatar in localStorage → agents table + 30s
                 last_seen_at heartbeat; agent_id/name/avatar snapshotted on messages (D37–D39/D41)
 presence dots   green = agent heartbeat <90s; grey = offline; on reply avatars,
-                typing row, header avatar; header picks typing → viewer → last agent (D39)
+                typing row, header avatar; header picks typing → viewer only (D39/D49)
 viewers         conversation_viewers heartbeat while a thread is open + visible;
                 dashboard header lists other agents; widget shows the viewer's photo
                 left of "<name> is here" (D37/D38)
@@ -279,8 +279,8 @@ typing          typing row + header say "<name> is typing…" with the writer's 
                 falls back to "Support is typing…" when identity is missing (D39)
 title           no messages → "Chat with support"; conversation → "Your conversation";
                 history → "Your conversations"; data-title wins (D40)
-idle status     no typing/viewer → the last replying agent's away message (one line);
-                photo dot still reflects their heartbeat (D40/D41)
+idle status     no typing/viewer → "Support is online/offline" with only a green/grey
+                dot — no agent avatar or identity mark (D49/D60)
 welcome         first message in the live transcript, anchored at the top as the thread
                 grows; hidden in history/past/ended; edited in Settings (D43/D45)
 presets         up to six site-wide question/answer pairs appear in an empty live chat;
@@ -680,7 +680,6 @@ Settings Save
                                        │
                                        ▼
 widget GET metadata ◄── one-second site cache ◄── sites row
-  ├─ awayMessage ──► header presence line only
   ├─ welcomeMessage ──► empty live conversation greeting
   └─ presetMessages ──► empty live conversation chips ──► persisted question + answer
 
@@ -805,7 +804,7 @@ dashboard Realtime UPDATE(conversations) ──► row chip + profile sheet upda
 widget header identity
   ├─ agent typing in this thread ──► "<name> is typing…" + avatar + green dot
   ├─ agent viewing this thread    ──► "<name> is here" + avatar + green dot
-  └─ nobody ──► brand textbox artwork + "Support is online/offline" + green/grey dot
+  └─ nobody ──► "Support is online/offline" + green/grey dot only (no avatar)
                 (online when at least one agent heartbeat is fresh)
 ```
 
@@ -853,9 +852,10 @@ row.
 
 The header identity is live-only (D49): it uses a typing agent or a `conversation_viewers`
 row for this exact thread. There is no fallback to the last replying agent or any online
-agent's identity. When nobody is there, the header shows the brand textbox artwork and
-"Support is online" when at least one agent heartbeat is fresh, otherwise "Support is
-offline", with a green or grey dot. The away message no longer fills the header.
+agent's identity. When nobody is there, the status slot is just a green or grey dot plus
+"Support is online" (at least one fresh heartbeat) or "Support is offline" — no avatar and
+no identity mark (D60). An agent who is actually in the thread still gets their photo and
+name. The away message is no longer editable in Settings and never fills the header.
 Message-bubble dots and the ended-screen avatar still use the last agent as before.
 
 ---

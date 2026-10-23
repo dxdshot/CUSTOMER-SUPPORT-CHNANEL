@@ -21,7 +21,6 @@ export default function SettingsPage() {
   const [draft, setDraft] = useState<Partial<AgentProfile>>({});
   const name = draft.name ?? profile.name;
   const avatarUrl = draft.avatarUrl ?? profile.avatarUrl;
-  const away = draft.awayMessage ?? profile.awayMessage;
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [notice, setNotice] = useState("");
   const [siteCopy, setSiteCopy] = useState<{ welcome: string; presets: PresetReply[]; notify: boolean }>({ welcome: DEFAULT_WELCOME, presets: [], notify: false });
@@ -233,19 +232,6 @@ export default function SettingsPage() {
                 maxLength={60}
                 className={fieldClass}
               />
-            </label>
-            <label className="block">
-              <span className="mb-1.5 block text-xs font-medium">Away message</span>
-              <textarea
-                rows={2}
-                value={away}
-                onChange={(event) => setDraft((current) => ({ ...current, awayMessage: event.target.value }))}
-                maxLength={200}
-                className={`${fieldClass} resize-none`}
-              />
-              <span className="mt-1.5 block text-[11px] leading-4 text-(--obsidian-dashboard-shell-text-subtle)">
-                Shown in the widget header when nobody is viewing.
-              </span>
             </label>
           </div>
 

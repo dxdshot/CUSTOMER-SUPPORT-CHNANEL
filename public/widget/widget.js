@@ -62,6 +62,13 @@ function presenceDot(online) {
     dot.setAttribute("aria-label", online ? "Online" : "Offline");
     return dot;
 }
+// Support-wide status with no identity: the green/grey dot beside the text.
+function statusDot(online) {
+    const dot = document.createElement("span");
+    dot.className = `status-dot ${online ? "online" : "offline"}`;
+    dot.setAttribute("aria-hidden", "true");
+    return dot;
+}
 // Mirrors the dashboard's VisitorAvatar palette so the same agent reads the
 // same way in the inbox and in the widget.
 const avatarGradients = [
@@ -544,34 +551,38 @@ export function mountChatWidget(options) {
                         ? `${viewing[0].name} is here`
                         : `${viewing.length} agents here`;
         const statusOnline = lead ? true : supportOnline;
-        // Photo/initial for a live agent; the brand artwork when nobody is here.
+        // A specific agent's photo/initial appears only while that agent is in this
+        // exact thread. The support-wide line is a status, not a person, so it
+        // carries just the dot — never an avatar (D60).
         const headerState = JSON.stringify([statusText, statusOnline, lead?.id, lead?.name, lead?.avatar]);
         if (headerState !== renderedHeaderState) {
             renderedHeaderState = headerState;
             statusLine.replaceChildren();
             if (statusText) {
-                const avatarWrap = element("span", "status-avatar-wrap");
-                if (lead?.avatar) {
-                    const photo = element("img", "");
-                    photo.src = lead.avatar;
-                    photo.alt = "";
-                    photo.addEventListener("error", () => {
+                if (lead) {
+                    const avatarWrap = element("span", "status-avatar-wrap");
+                    if (lead.avatar) {
+                        const photo = element("img", "");
+                        photo.src = lead.avatar;
+                        photo.alt = "";
+                        photo.addEventListener("error", () => {
+                            const initial = element("span", "status-initial");
+                            initial.textContent = (lead.name || "S").slice(0, 1).toUpperCase();
+                            photo.replaceWith(initial);
+                        }, { once: true });
+                        avatarWrap.append(photo);
+                    }
+                    else {
                         const initial = element("span", "status-initial");
                         initial.textContent = (lead.name || "S").slice(0, 1).toUpperCase();
-                        photo.replaceWith(initial);
-                    }, { once: true });
-                    avatarWrap.append(photo);
-                }
-                else if (lead?.name) {
-                    const initial = element("span", "status-initial");
-                    initial.textContent = lead.name.slice(0, 1).toUpperCase();
-                    avatarWrap.append(initial);
+                        avatarWrap.append(initial);
+                    }
+                    avatarWrap.append(presenceDot(statusOnline));
+                    statusLine.append(avatarWrap);
                 }
                 else {
-                    avatarWrap.append(art());
+                    statusLine.append(statusDot(statusOnline));
                 }
-                avatarWrap.append(presenceDot(statusOnline));
-                statusLine.append(avatarWrap);
                 const text = element("span", "status-text");
                 text.textContent = statusText;
                 statusLine.append(text);

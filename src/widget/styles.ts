@@ -32,6 +32,8 @@ export const widgetStyles = `
 .status-initial{display:inline-grid;place-items:center;width:100%;height:100%;border-radius:50%;background:var(--blue);color:#fff;font-size:8px;font-weight:600;line-height:1}
 .presence-dot{position:absolute;right:-2px;bottom:-2px;width:6px;height:6px;border-radius:50%;border:1.5px solid var(--surface);box-sizing:content-box;pointer-events:none}
 .presence-dot.online{background:#22c55e}.presence-dot.offline{background:#6b7280}
+.status-dot{width:7px;height:7px;flex:0 0 7px;border-radius:50%;background:#22c55e}
+.status-dot.offline{background:#6b7280}
 .status-text{min-width:0;max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .body{position:relative;z-index:1;flex:1;min-height:0;overflow:auto;overscroll-behavior:contain;padding:14px 18px;scrollbar-width:thin;scrollbar-color:var(--strong) transparent}
 .messages{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:10px}

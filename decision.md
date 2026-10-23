@@ -2158,3 +2158,31 @@ contracts, runtime regressions, 7 embed tests), and `pnpm lint` (only the repo's
 pre-existing `no-img-element` warnings). `scripts/verify-runtime-regressions.mjs` now
 asserts the 5s closed / 1s open delays. The release check runs `build:widget`, so the
 committed `public/widget` output includes the updated typing styles and reveal logic.
+
+---
+
+## D60 — Support-wide status has no identity, and the away message setting is gone
+
+**Evidence.** D49 already limited the header's named identity to a live signal (an agent
+typing in, or a `conversation_viewers` row for, that exact thread). The fallback branch,
+however, still painted an image in the 14px identity slot next to "Support is online" —
+`art()`, the same artwork the launcher and brand mark use. On installs whose `data-asset`
+points at a person, that reads as the agent's own avatar next to a support-wide status.
+Separately, Settings still offered an "Away message" field whose helper text promised it
+would be "shown in the widget header when nobody is viewing" — D34/D49 had already removed
+that rendering, so the field was a no-op.
+
+**Decision.** The support-wide state ("Support is online" / "Support is offline") is a
+status line, not a person: it now renders a plain 7px green/grey dot plus the text, with
+no image and no identity slot. A specific agent's photo/initial and name still appear only
+while that agent is typing in or viewing this exact conversation. The Settings "Away
+message" field is removed; the stored column stays for compatibility but nothing reads it
+in the widget. Release `2026-10-23.2` refreshes cached widget assets.
+
+**Why.** Showing an avatar beside "Support is online" implies that person is present,
+which is exactly the misleading fallback D49 removed. Removing the dead Settings control
+also stops promising a header line the widget no longer renders.
+
+**Proof.** `pnpm test`, `pnpm exec tsc --noEmit`, `pnpm verify:widget`, `pnpm lint`, and
+`pnpm build` pass. `scripts/verify-runtime-regressions.mjs` renders Settings without the
+away field and still saves the profile + welcome copy.
