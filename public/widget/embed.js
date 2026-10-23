@@ -41,7 +41,7 @@
     // without erasing a visitor's conversation. Storage changes only when the
     // persisted data shape is no longer compatible.
     const WIDGET_RELEASE = {
-        assets: "2026-10-22.7",
+        assets: "2026-10-23.1",
         storage: "2026-10-20.5",
     };
     const STORAGE_VERSION_KEY = "chat-platform:widget-version";
@@ -215,7 +215,9 @@
         let lastMetaFor = "";
         let pollNowFn = null;
         let pollTick = null;
-        let pollDelay = 15000;
+        // Live chat polls fast while the panel is open (a reply is on screen in
+        // about a second), and stays cheap in the background while it is closed.
+        let pollDelay = 5000;
         // Incremental polling: only messages newer than the cursor are
         // fetched; switching conversations resets it.
         let cursor = "";
@@ -270,15 +272,6 @@
                     return lastMeta;
                 }
                 const payload = await fetchState(signal, conversationId);
-                return payload.meta;
-            },
-            async initialMeta(signal) {
-                // Meta only: used at mount for the welcome-notification setting before
-                // the panel or the first poll runs (D50).
-                const response = await fetch(query("&meta=1"), { signal });
-                if (!response.ok)
-                    throw new Error(`Could not load widget meta (${response.status})`);
-                const payload = (await response.json());
                 return payload.meta;
             },
             async send(message, signal) {
@@ -402,7 +395,7 @@
                 };
             },
             setOpen(open) {
-                pollDelay = open ? 2000 : 15000;
+                pollDelay = open ? 1000 : 5000;
                 pollTick?.();
             },
             setConversation(conversationId) {

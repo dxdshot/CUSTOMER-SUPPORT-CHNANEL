@@ -2,7 +2,7 @@
 
 The map of the app as it is today, and where the pieces that don't exist yet will attach.
 
-Last updated: 2026-10-20 · Supabase loop (D27–D28); header/art fixes (D29–D30); Tier-1 (D32–D36); audit continuation — profiles, exact-thread presence, live unread, lazy transcripts, incremental polling, replay-safe sends (D37); agent photo in widget replies + viewer status (D38); named typing + per-agent online/offline dots (D39); surface-aware titles + reply-soon status (D40); per-agent away header text (D41, corrected by D43); profile hydration, drafts, and low-cost widget updates (D42); site-wide welcome, suggested questions, and deterministic new chats (D43); paired preset replies (D44); closed-state avatar, neutral preset bubbles, and anchored welcome (D45); dynamic tag registry (D46); visitor topic prompt (D47); right-aligned preset chips and a neutral topic dropdown (D48); live-only header identity and a Support online/offline status (D49); per-site welcome notification toggle (D50); no mandatory visitor identity (D51); optional email bar, first-chat CTA, compact panel, maximized status, deferred sound (D52). Seed data is the offline fallback when env is missing.
+Last updated: 2026-10-23 · Supabase loop (D27–D28); header/art fixes (D29–D30); Tier-1 (D32–D36); audit continuation — profiles, exact-thread presence, live unread, lazy transcripts, incremental polling, replay-safe sends (D37); agent photo in widget replies + viewer status (D38); named typing + per-agent online/offline dots (D39); surface-aware titles + reply-soon status (D40); per-agent away header text (D41, corrected by D43); profile hydration, drafts, and low-cost widget updates (D42); site-wide welcome, suggested questions, and deterministic new chats (D43); paired preset replies (D44); closed-state avatar, neutral preset bubbles, and anchored welcome (D45); dynamic tag registry (D46); visitor topic prompt (D47); right-aligned preset chips and a neutral topic dropdown (D48); live-only header identity and a Support online/offline status (D49); per-site welcome notification toggle (D50); no mandatory visitor identity (D51); optional email bar, first-chat CTA, compact panel, maximized status, deferred sound (D52); one workspace agent identity (D58); instant first open, 1s live polling, aligned typing row, one country chip (D59). Seed data is the offline fallback when env is missing.
 
 ---
 
@@ -162,7 +162,8 @@ three-dot button — no home mark, no separate maximize button. The menu drops b
 (never over the title) and closes on an outside click, Escape, choosing an item, maximizing,
 or closing the panel. Escape walks menu → restore → close. Maximized mode fills the viewport,
 scales the type/bubbles/composer up, hides the launcher, notifications and inline identity,
-and centres the title as plain text.
+and centres the title as plain text. The typing row shares the same centred 720px message
+column, so it sits under the agent's bubbles instead of in the far-left gutter (D59).
 
 ---
 
@@ -266,7 +267,7 @@ read receipts   one tick sent → two blue ticks when createdAt ≤ agent_last_r
 unread          conversations.unread_count (trigger +1 visitor, 0 agent/read) (D37)
 history         left brand button → flat rows (avatar, "You, date", lastMessage,
                 chevron), bottom "Start new conversation" pill; no cards (D33)
-                cached 30s + prefetched at mount, so opening is instant (D33)
+                cached 30s, loads on the first history open (D42)
 profile         agent name/avatar/away message in localStorage → agents table + 30s
                 last_seen_at heartbeat; agent_id/name/avatar snapshotted on messages (D37–D39/D41)
 presence dots   green = agent heartbeat <90s; grey = offline; on reply avatars,
@@ -306,21 +307,24 @@ attachments     file → POST /upload (widget) or storage.upload (dashboard)
 CSAT            latest closed → centered 👍/👎 (optimistic: thanks in the same tick)
                 → state {action:"csat"}; profile sheet reads the same column
 loader          artwork only — no blue disc behind the pulsing PNG (D33)
-poll            2s while the panel is open, 15s when closed; hidden tabs stop polling,
-                visible tabs refresh immediately; one abortable request runs at a time;
-                delivery is deduped and polls send an `after` cursor (D35/D37/D42)
+poll            1s while the panel is open, 5s when closed; hidden tabs keep polling so
+                notices still arrive, visible tabs refresh immediately; one abortable
+                request runs at a time; delivery is deduped and polls send an `after`
+                cursor (D59)
 sends           site cached 1s; trigger maintains last_message/updated_at/unread;
                 replay-safe ids; state actions target the on-screen conversation (D37)
 inbox load      conversation rows only; transcripts load on selection (D37)
 ```
 
 **Open latency.** The GET returns `{messages, meta}` and the embed caches that meta, so a
-reload costs one round trip. The widget does not prefetch conversation history or past
-chats on mount. It loads only after the visitor opens the panel or requests history,
-which removes idle network work (D42). Closing a chat in the inbox reaches the widget on
-the next 2-second open-panel poll, with an immediate refresh when the document becomes
-visible. Dashboard conversation UPDATEs are applied from the realtime payload locally —
-no refetch (D35/D42).
+reload costs one round trip. The widget prefetches the latest conversation once at mount
+(panel still closed, nothing visible) so the first launcher click reveals a loaded panel
+in the same frame; if that request is still in flight the panel opens immediately on its
+loader instead of staying hidden. The same response carries the welcome-notification
+flag, so the old meta-only probe is gone. Closing a chat in the inbox reaches an open
+widget on the next 1-second poll (5s while closed), with an immediate refresh on reveal,
+send, and when the document becomes visible. Dashboard conversation UPDATEs are applied
+from the realtime payload locally — no refetch (D59).
 
 **Ended vs past.** `meta.latestConversationId` distinguishes the live thread from a
 history transcript: the centered end screen only shows for the latest closed chat, and
@@ -433,7 +437,7 @@ Host apps can call `window.chatPlatformIdentify(name, email)` before sending.
 `embed.js` is a classic script: it reads `document.currentScript.src`, imports `widget.js`
 from the same directory and mounts it. With `data-site` it uses the live transport
 (`GET /api/widget/messages?site=&visitor=`, `POST /api/widget/messages { site, visitor, id, body, context }`,
-plus a dynamic polling `subscribe` (2s open / 15s closed, hidden tabs paused, deduped by
+plus a dynamic polling `subscribe` (1s open / 5s closed, deduped by
 id) — no
 supabase-js ships in the embed,
 by design, D27); without it, messages persist in `sessionStorage` for the tab.
@@ -502,7 +506,9 @@ The visitor profile is a sheet over the panes at every width (D19), so opening i
 steals width from the thread.
 
 The profile sheet is scoped to the inbox panes (it is positioned inside `InboxView`), so the
-sidebar, header and tabs stay usable while it is open.
+sidebar, header and tabs stay usable while it is open. The header chip is the only place the
+visitor's flag/country appears; Details lists email, timezone, first seen, sessions, and
+current page (D59).
 
 One gutter rule holds at every width: 16px is the left edge for the header title, tabs,
 toolbar, list rows, thread, panels and page content — and 16px inside the sidebar for the
@@ -540,8 +546,8 @@ The loop above is live (D27); the preview still runs its in-memory fake beside i
    still belongs here for when nobody is online.
 3. Agents read via `fetchConversations(siteKey)` and subscribe to Postgres Changes under
    the demo RLS — the inbox list, thread and unread counters update from those events.
-4. The visitor picks up agent replies on the widget's dynamic poll (2s open / 15s
-   closed, paused while hidden and deduped by id; no supabase-js ships in the embed,
+4. The visitor picks up agent replies on the widget's dynamic poll (1s open / 5s
+   closed, deduped by id; no supabase-js ships in the embed,
    by design). Broadcast
    per conversation would replace the polling when the embed grows a bundler.
 
@@ -549,7 +555,7 @@ The loop above is live (D27); the preview still runs its in-memory fake beside i
 | --- | --- | --- |
 | Data | Supabase Postgres via `src/lib/conversations.ts`; seed data is the offline fallback; visitor context + read timestamps + CSAT on conversations (D28, D32) | per-site switcher in the inbox (query shape ready), tighten RLS with auth |
 | Canned responses | `src/lib/canned-store.ts` (localStorage) | `canned_responses` table + realtime |
-| Realtime | Postgres Changes dashboard-side (messages, conversations, typing); widget polls 2s open / 15s closed, pauses while hidden, and deduplicates delivery | Broadcast for the visitor leg, presence channel for `/dashboard/visitors` |
+| Realtime | Postgres Changes dashboard-side (messages, conversations, typing); widget polls 1s open / 5s closed and deduplicates delivery | Broadcast for the visitor leg, presence channel for `/dashboard/visitors` |
 | Presence | `sites.agent_online_at` heartbeat + working hours; exact-thread `conversation_viewers` heartbeat (D37) | presence channel feeding `/dashboard/visitors` |
 | Profiles | localStorage agent profile → `agents`; `messages.agent_name` snapshot shown in both surfaces (D37) | Supabase Auth identity, shared team profiles |
 | Typing indicators | `typing` table, throttled timestamps, realtime (D32) | broadcast-only events if the table grows hot |
@@ -637,9 +643,9 @@ notification row ──► /dashboard?conversation=<id> ──► InboxView sele
 composer text ──► replyDrafts[conversation.id] ──► restore on thread switch
 
 widget poll scheduler
-  visible + open   ──► request every 2s
-  visible + closed ──► request every 15s
-  hidden           ──► cancel schedule; no request
+  visible + open   ──► request every 1s
+  visible + closed ──► request every 5s
+  hidden           ──► keep the closed cadence so replies still raise a notice
   visible again    ──► immediate refresh
 ```
 
@@ -862,25 +868,25 @@ Settings
                                           (saved with welcome + presets)
 
 widget mount (panel closed)
-  └─ transport.initialMeta ──► GET /messages?site=…&visitor=…&meta=1
-       └─ meta { welcomeNotify, welcomeMessage }
-            ├─ off / blank / panel already open or opening / destroyed ──► nothing
+  └─ reload() prefetch ──► GET /messages?site=…&visitor=…
+       └─ messages + meta { welcomeNotify, welcomeMessage }
+            ├─ panel already opened meanwhile ──► markWelcomeSeen(), nothing else
+            ├─ off / blank / destroyed ──► nothing
             └─ on + panel closed
                  └─ pushWelcomeNotice()
                       ├─ one notice card above the launcher:
                       │    "Support" + "You have an unread notification."
                       │    (never the welcome copy)
+                      ├─ launcher badge goes to 1 (same as an unread reply)
                       ├─ options.onNotify() ──► same Cuelume sound as unread replies
-                      ├─ no unread count change / no launcher badge
                       ├─ auto-dismiss after 6s; click opens the panel
                       └─ once per visitor (localStorage welcome key)
 ```
 
 The switch has only its name and the control — no helper copy. It is saved through the
-existing Save settings button together with the welcome message and presets. The
-meta-only GET returns the site welcome copy and the toggle without loading messages, so
-the closed widget does not pay for the transcript it is trying to avoid. The local demo
-transport has no `initialMeta`, so the notification is a real-backend behavior.
+existing Save settings button together with the welcome message and presets. The mount
+prefetch is the same GET the open panel uses, so it carries the transcript and the meta
+in one round trip; the separate meta-only probe is gone (D59).
 
 The notice uses the existing notice stack/CSS and sound path but shows the generic
 "You have an unread notification." line instead of the welcome text. The

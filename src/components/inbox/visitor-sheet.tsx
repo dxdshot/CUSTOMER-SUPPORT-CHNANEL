@@ -115,11 +115,6 @@ export function VisitorSheet({
 
             <div className="obsidian-dashboard-shell-scroll min-h-0 flex-1 overflow-y-auto">
               <SheetSection title="Details">
-                {visitor.flag || visitor.country ? (
-                  <InfoRow icon={MapPin}>
-                    {visitor.flag} {visitor.country}
-                  </InfoRow>
-                ) : null}
                 <InfoRow icon={Mail}>{visitor.email || "No email yet"}</InfoRow>
                 {visitor.timezone ? <InfoRow icon={Clock}>{visitor.timezone}</InfoRow> : null}
                 <InfoRow icon={Calendar}>First seen {visitor.firstSeen}</InfoRow>

@@ -76,8 +76,6 @@ export type WidgetTransport = {
   subscribe?: (receive: (message: WidgetMessage) => void, onMeta: (meta: WidgetMeta) => void) => () => void;
   /** One-shot state fetch for reloads and history transcripts (D31). */
   meta?: (signal: AbortSignal, conversationId?: string) => Promise<WidgetMeta>;
-  /** Lightweight meta-only fetch at mount, before the panel opens (D50). */
-  initialMeta?: (signal: AbortSignal) => Promise<WidgetMeta>;
   /** Fetch state immediately instead of waiting for the next poll (D34). */
   pollNow?: () => void;
   /** The panel opened/closed — the transport may poll faster while open (D35). */

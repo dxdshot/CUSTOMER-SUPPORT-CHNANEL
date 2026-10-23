@@ -120,7 +120,6 @@ export function mountChatWidget(options) {
     let loadAbort;
     let state = "idle";
     let opened = false;
-    let openWhenReady = false;
     let destroyed = false;
     let messages = [];
     let renderedMessages;
@@ -154,7 +153,6 @@ export function mountChatWidget(options) {
     let closeTopicMenu = null;
     let welcomeNotified = false;
     const historyAbort = new AbortController();
-    const welcomeAbort = new AbortController();
     const noticeTimers = new Map();
     const noticeIds = new Set();
     const MAX_NOTICES = 3;
@@ -1104,8 +1102,6 @@ export function mountChatWidget(options) {
             // Meta is best-effort: the transcript already rendered.
         }
         render();
-        if (openWhenReady)
-            reveal();
     }
     async function transmit(message) {
         if (messages.some((item) => item.id === message.id && item.delivery === "sending"))
@@ -1357,7 +1353,6 @@ export function mountChatWidget(options) {
         homeButton.setAttribute("aria-label", next ? "Restore size" : "Close chat");
     }
     function close() {
-        openWhenReady = false;
         opened = false;
         if (maximized)
             setMaximized(false);
@@ -1492,7 +1487,6 @@ export function mountChatWidget(options) {
     function reveal() {
         if (destroyed || opened)
             return;
-        openWhenReady = false;
         returnFocus = document.activeElement === host ? shadow.activeElement : document.activeElement;
         opened = true;
         if (meta?.welcomeNotify)
@@ -1510,14 +1504,12 @@ export function mountChatWidget(options) {
     function open() {
         if (destroyed || opened)
             return;
-        // The panel waits for the conversation: while loading, the widget's launcher carries the
-        // state and the panel opens only once loading has finished (success or failure).
-        if (state === "idle" || state === "loading") {
-            openWhenReady = true;
-            if (state === "idle")
-                void reload();
-            return;
-        }
+        // Reveal in the same frame as the click. The transcript is prefetched at
+        // mount, so this is normally already loaded; if the request is still in
+        // flight the panel opens on its loader instead of leaving the visitor
+        // staring at a launcher that swallowed their click.
+        if (state === "idle")
+            void reload();
         reveal();
     }
     launcher.addEventListener("click", () => opened ? close() : open());
@@ -1733,27 +1725,23 @@ export function mountChatWidget(options) {
     };
     document.addEventListener("visibilitychange", onVisibility);
     render();
-    // D50: meta-only fetch at mount, so the optional welcome notification can
-    // appear while the panel is still closed without loading the transcript.
-    if (options.transport.initialMeta) {
-        void options.transport.initialMeta(welcomeAbort.signal)
-            .then((next) => {
-            if (destroyed)
-                return;
-            if (next.widgetSize)
-                widget.dataset.size = next.widgetSize;
-            if (opened || openWhenReady) {
-                // They have already seen the widget/welcome; never notify later.
-                if (next.welcomeNotify)
-                    markWelcomeSeen();
-                return;
-            }
-            if (!next.welcomeNotify || !next.welcomeMessage?.trim())
-                return;
-            pushWelcomeNotice();
-        })
-            .catch(() => { });
-    }
+    // Prefetch at mount while the panel is still closed. The first click then
+    // reveals a ready transcript instead of waiting on a cold request, and the
+    // same response carries the optional welcome notification (D50) — one round
+    // trip replaces the old meta-only probe.
+    void reload().then(() => {
+        if (destroyed || !meta)
+            return;
+        if (opened) {
+            // They have already seen the widget/welcome; never notify later.
+            if (meta.welcomeNotify)
+                markWelcomeSeen();
+            return;
+        }
+        if (!meta.welcomeNotify || !meta.welcomeMessage?.trim())
+            return;
+        pushWelcomeNotice();
+    });
     const handle = {
         open, close, reload,
         setSize(next) {
@@ -1764,7 +1752,6 @@ export function mountChatWidget(options) {
             abort.abort();
             loadAbort?.abort();
             historyAbort.abort();
-            welcomeAbort.abort();
             if (typingClear)
                 window.clearTimeout(typingClear);
             if (csatPendingTimer)

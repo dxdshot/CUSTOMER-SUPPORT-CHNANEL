@@ -113,6 +113,9 @@ export const widgetStyles = `
 .widget[data-maximized=true] .bubble{padding:10px 14px;font-size:14.5px;line-height:1.55;border-radius:15px 15px 15px 5px}
 .widget[data-maximized=true] .message[data-author=visitor] .bubble{border-radius:15px 15px 5px 15px}
 .widget[data-maximized=true] .meta{margin-top:4px;font-size:11px}
+.widget[data-maximized=true] .typing-row{width:100%;max-width:720px;margin:0 auto;gap:8px;padding-top:14px}
+.widget[data-maximized=true] .typing-avatar{width:28px;height:28px;flex-basis:28px}
+.widget[data-maximized=true] .typing-bubble{padding:10px 14px}
 .widget[data-maximized=true] .tick svg{width:14px;height:14px}
 .widget[data-maximized=true] .composer-wrap{padding:8px calc(18px + env(safe-area-inset-right)) calc(14px + env(safe-area-inset-bottom)) calc(18px + env(safe-area-inset-left))}
 .widget[data-maximized=true] .presets{width:100%;max-width:720px;margin:12px auto 0}
@@ -129,8 +132,8 @@ export const widgetStyles = `
 @media(hover:hover) and (pointer:fine){.icon-btn:hover{background:#ffffff16}.header-art:hover{background:#ffffff20}.menu-item:hover{background:#ffffff12}.notice-close:hover{background:#ffffff16;color:#fff}.notice-open:hover .notice-body{color:#c9c9c9}.send:hover:not(:disabled){background:color-mix(in srgb,var(--blue) 84%,white)}.launcher:hover{background:color-mix(in srgb,var(--blue) 88%,black)}}
 @media(max-width:480px){.widget{right:max(12px,env(safe-area-inset-right));bottom:max(12px,env(safe-area-inset-bottom));left:12px;gap:10px}.panel{width:100%;height:min(520px,calc(100dvh - 86px));min-height:220px;border-radius:16px}.launcher{width:52px;height:52px}.header{padding:9px 12px;border-radius:0 0 14px 14px}.input{font-size:16px;min-height:44px}}
 @media(prefers-reduced-motion:reduce){.loading-art img,.launcher[data-loading=true] .art{animation:none;filter:brightness(.95)}button:active:not(:disabled){transform:none}}
-.typing-row{display:flex;align-items:center;gap:8px;padding:10px 2px 0;font-size:10.5px;color:var(--text-muted)}
-.typing-avatar{position:relative;display:inline-grid;place-items:center;width:18px;height:18px;flex:0 0 18px}
+.typing-row{display:flex;align-items:center;gap:6px;padding:10px 2px 0;font-size:10.5px;color:var(--text-muted)}
+.typing-avatar{position:relative;display:inline-grid;place-items:center;width:22px;height:22px;flex:0 0 22px}
 .typing-avatar-wrap{position:relative;display:inline-grid;place-items:center;width:100%;height:100%;border-radius:50%}
 .typing-avatar-wrap img{width:100%;height:100%;border-radius:50%;object-fit:cover}
 .typing-bubble{display:inline-flex;align-items:center;gap:3px;padding:9px 12px;border-radius:13px 13px 13px 4px;background:var(--muted)}

@@ -2116,3 +2116,45 @@ photo preservation on save, and that the heartbeat patch contains no name/avatar
 
 **Trade-off.** The shared profile remains publicly writable under the demo RLS policies. Real
 per-agent identities (and locked-down profiles) require auth, which is explicitly out of scope.
+
+---
+
+## D59 — Instant first open, 1s live replies, aligned typing row, one country chip
+
+**Evidence.** The launcher click was gated on the network: `open()` set `openWhenReady` and
+returned while `reload()` ran, so the panel stayed hidden until the first cold GET
+finished. In practice the first click sat for ~5s with no feedback at all. D42 had also
+removed the mount prefetch and widened polling to 2s/open and 15s/closed, so an agent
+reply could take 15s to reach a closed widget and two seconds to reach an open one. On a
+maximized panel (full viewport), `.messages` is a centred 720px column while `.typing-row`
+was a direct child of `.body` with no width cap — so "Support is typing…" painted at the
+far-left gutter instead of under the agent's bubbles. The visitor profile printed the
+flag/country twice: once as the header chip and again as the first row of Details.
+
+**Decision.**
+- **Reveal on click.** `open()` calls `reveal()` in the same frame and only starts
+  `reload()` if the widget is still idle. The loader inside an already-open panel covers
+  a slow request; the launcher never swallows the click.
+- **Prefetch at mount.** `reload()` runs once at mount while the panel is closed. The
+  first open is normally already loaded, and the same response carries the welcome
+  notification flag, so one GET replaces D50's meta-only probe (`transport.initialMeta`
+  is removed). Cost: one conversation GET per page view.
+- **Live replies.** Poll cadence is 1s while the panel is open and 5s while closed
+  (`setOpen` switches; reveal, send, CSAT, new chat, and tab visibility still call
+  `pollNow`). Worst-case inbox → widget delivery is about a second with the panel open;
+  the inbox itself stays truly instant through Postgres Changes.
+- **Typing row.** It now uses the same 22px avatar slot and 6px gap as `.message`, and on
+  maximized screens shares the centred `max-width:720px` column (28px avatar, 10px 14px
+  bubble) so it lines up with the transcript.
+- **Country once.** Details no longer repeats flag/country; the header chip remains the
+  only place it appears. Email, timezone, first seen, sessions, and current page stay.
+- Release `2026-10-23.1` refreshes cached widget assets; storage is unchanged.
+
+**Supersedes.** D42's "mount does not prefetch" and its 2s/15s cadence (which had already
+superseded D33/D35). The welcome-notification probe from D50 folds into the prefetch.
+
+**Proof.** `pnpm test` (16/16), `pnpm exec tsc --noEmit`, `pnpm verify:widget` (release
+contracts, runtime regressions, 7 embed tests), and `pnpm lint` (only the repo's
+pre-existing `no-img-element` warnings). `scripts/verify-runtime-regressions.mjs` now
+asserts the 5s closed / 1s open delays. The release check runs `build:widget`, so the
+committed `public/widget` output includes the updated typing styles and reveal logic.
