@@ -40,7 +40,7 @@
   // without erasing a visitor's conversation. Storage changes only when the
   // persisted data shape is no longer compatible.
   const WIDGET_RELEASE = {
-    assets: "2026-10-23.3",
+    assets: "2026-10-23.4",
     storage: "2026-10-20.5",
   } as const;
   const STORAGE_VERSION_KEY = "chat-platform:widget-version";
@@ -581,6 +581,23 @@
     },
   };
 
+  const loadInitialWidgetSize = async () => {
+    const controller = new AbortController();
+    const timeout = window.setTimeout(() => controller.abort(), 2_000);
+    try {
+      const query = new URLSearchParams({ site, visitor: visitorId, meta: "1" });
+      const response = await fetch(`${api}/messages?${query.toString()}`, { signal: controller.signal });
+      if (!response.ok) return;
+      const payload = (await response.json()) as { meta?: Meta };
+      const savedSize = payload.meta?.widgetSize;
+      if (savedSize === "sm" || savedSize === "md" || savedSize === "lg") options.size = savedSize;
+    } catch {
+      // The data-size fallback still mounts the widget if metadata is unavailable.
+    } finally {
+      window.clearTimeout(timeout);
+    }
+  };
+
   // An async script in <head> may finish before <body> exists. A later embed
   // replaces an earlier pending import as well as an already mounted widget.
   const globalWindow = window as Window & {
@@ -590,8 +607,11 @@
   const boot = {};
   globalWindow.chatPlatformBoot = boot;
   const mount = () => {
-    void import(new URL(`widget.js?v=${WIDGET_RELEASE.assets}`, base).href)
-      .then((module) => {
+    void Promise.all([
+      import(new URL(`widget.js?v=${WIDGET_RELEASE.assets}`, base).href),
+      loadInitialWidgetSize(),
+    ])
+      .then(([module]) => {
         if (globalWindow.chatPlatformBoot !== boot) return;
         try {
           globalWindow.chatPlatformWidget?.destroy?.();

@@ -478,6 +478,9 @@ export function mountChatWidget(options) {
         }
     }
     function adoptMeta(next) {
+        if (next.widgetSize && widget.dataset.size !== next.widgetSize) {
+            widget.dataset.size = next.widgetSize;
+        }
         let result = next;
         if (topicPending) {
             const tags = next.conversationTags ?? [];

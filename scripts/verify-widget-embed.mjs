@@ -24,6 +24,7 @@ async function boot({ site = "site_demo_001", body = {}, nonce = "", identity, v
   const listeners = new Map();
   const mounts = [];
   const requests = [];
+  let bootstrapRequests = 0;
   const errors = [];
   const document = {
     body,
@@ -43,8 +44,17 @@ async function boot({ site = "site_demo_001", body = {}, nonce = "", identity, v
     innerWidth: 1200,
     location: { pathname: "/first", search: "" },
     addEventListener() {},
+    setTimeout,
+    clearTimeout,
+    setInterval: () => 0,
+    clearInterval() {},
   };
-  const fetch = async (url, options) => {
+  const fetch = async (url, options = {}) => {
+    if (url.includes("/presence")) return { ok: true, json: async () => ({ ok: true }) };
+    if (url.includes("meta=1")) {
+      bootstrapRequests++;
+      return { ok: true, json: async () => ({ meta: { widgetSize: "sm" } }) };
+    }
     requests.push({ url, body: JSON.parse(options.body) });
     return {
       ok: true,
@@ -65,7 +75,7 @@ async function boot({ site = "site_demo_001", body = {}, nonce = "", identity, v
   const run = () => vm.runInNewContext(source, context);
   run();
   await new Promise(setImmediate);
-  return { document, window, listeners, mounts, requests, errors, run };
+  return { document, window, listeners, mounts, requests, bootstrapRequests, errors, run };
 }
 
 test("a missing site key never mounts a chat that cannot reach support", async () => {
@@ -81,6 +91,13 @@ test("an async head script waits for the document body", async () => {
   listeners.get("DOMContentLoaded")?.[0]?.();
   await new Promise(setImmediate);
   assert.equal(mounts.length, 1);
+  assert.equal(mounts[0].size, "sm");
+});
+
+test("the saved site size overrides a stale embed size before the widget mounts", async () => {
+  const { mounts, bootstrapRequests } = await boot();
+  assert.equal(bootstrapRequests, 1);
+  assert.equal(mounts[0].size, "sm");
 });
 
 test("the latest snippet wins when scripts run before the body exists", async () => {

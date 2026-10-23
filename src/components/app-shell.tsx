@@ -3,7 +3,7 @@
 import { useEffect, useState, useSyncExternalStore, type ReactNode } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { BarChart3, Bell, Inbox, MessageCircle, Settings, Users, Zap } from "lucide-react";
+import { Bell, Inbox, MessageCircle, Settings, Users, Zap } from "lucide-react";
 import {
   DashboardButton,
   DashboardMenu,
@@ -66,16 +66,10 @@ function saveSidebarWidth(width: number) {
 
 const navigation: DashboardShellNavSection[] = [
   {
-    id: "support",
+    id: "main",
     items: [
       { id: "/dashboard", label: "Inbox", icon: Inbox, href: "/dashboard" },
       { id: "/dashboard/visitors", label: "Live visitors", icon: Users, href: "/dashboard/visitors" },
-      { id: "/dashboard/analytics", label: "Analytics", icon: BarChart3, href: "/dashboard/analytics" },
-    ],
-  },
-  {
-    id: "workspace",
-    items: [
       { id: "/dashboard/canned-responses", label: "Canned responses", icon: Zap, href: "/dashboard/canned-responses" },
       { id: "/dashboard/widget", label: "Widget", icon: MessageCircle, href: "/dashboard/widget" },
       { id: "/dashboard/settings", label: "Settings", icon: Settings, href: "/dashboard/settings" },

@@ -911,7 +911,7 @@ const SidebarContent = memo(function SidebarContent({
         className="obsidian-dashboard-shell-scroll min-h-0 flex-1 overflow-y-auto overflow-x-hidden overscroll-contain"
       >
         <HoverHighlightList>
-          {navigation.map((section, index) => (
+          {navigation.map((section) => (
             <NavSection
               key={section.id}
               title={section.title}
@@ -919,7 +919,6 @@ const SidebarContent = memo(function SidebarContent({
               activeItemId={activeItemId}
               pillId={pillId}
               onSelect={onSelect}
-              className={index < navigation.length - 1 ? "border-b border-(--obsidian-dashboard-shell-border)" : undefined}
             />
           ))}
         </HoverHighlightList>

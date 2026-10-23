@@ -84,6 +84,7 @@ let requests = 0;
 let resolveRequest;
 let requestSignal;
 let requestOptions;
+let bootstrapRequests = 0;
 const document = {
   currentScript: { src: 'https://example.com/widget/embed.js', dataset: { site: 'test' } },
   body: {},
@@ -101,8 +102,15 @@ vm.runInNewContext(compile('src/widget/embed.ts'), {
     location: { pathname: '/', search: '' },
     setTimeout: (callback, delay) => { const id = ++timerId; timers.set(id, { callback, delay }); return id; },
     clearTimeout: (id) => timers.delete(id),
+    setInterval: () => 0,
+    clearInterval() {},
   },
-  fetch: (_url, options) => {
+  fetch: (url, options = {}) => {
+    if (url.includes('/presence')) return Promise.resolve({ ok: true, json: async () => ({ ok: true }) });
+    if (url.includes('meta=1')) {
+      bootstrapRequests++;
+      return Promise.resolve({ ok: true, json: async () => ({ meta: { widgetSize: 'md' } }) });
+    }
     requests++;
     requestSignal = options.signal;
     requestOptions = options;
@@ -112,6 +120,7 @@ vm.runInNewContext(compile('src/widget/embed.ts'), {
 });
 await new Promise(setImmediate);
 assert.ok(transport);
+assert.equal(bootstrapRequests, 1, 'saved widget size is loaded before mount');
 const delivered = [];
 const metas = [];
 const stop = transport.subscribe((message) => delivered.push(message), (meta) => metas.push(meta));
