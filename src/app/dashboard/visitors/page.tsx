@@ -113,7 +113,7 @@ export default function VisitorsPage() {
         : [];
     });
     return {
-      visitors, dots, unique: new Set(visits.map((row) => row.visitor_id)).size, visits: visits.length,
+      visitors, dots, unique: new Set(active.map((row) => row.visitor_id)).size, visits: visits.length,
       bounce: completed.length ? Math.round(completed.filter((row) => row.page_views === 1).length / completed.length * 100) : 0,
     };
   }, [sessions, refreshedAt]);

@@ -498,7 +498,6 @@ export function mountChatWidget(options: WidgetOptions): WidgetHandle {
     }
   }
   function adoptMeta(next: WidgetMeta): WidgetMeta {
-    if (next.widgetSize) widget.dataset.size = next.widgetSize;
     let result = next;
     if (topicPending) {
       const tags = next.conversationTags ?? [];

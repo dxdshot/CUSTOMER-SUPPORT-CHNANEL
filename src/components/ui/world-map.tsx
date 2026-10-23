@@ -75,9 +75,9 @@ export default function WorldMap({
             <g key={`points-${dot.id}`}>
               {points.map((point, index) => (
                 <g key={`${dot.id}-${index}`}>
-                  <circle cx={point.x} cy={point.y} r="2" fill={lineColor} />
-                  <circle cx={point.x} cy={point.y} r="2" fill={lineColor} opacity="0.5">
-                    <animate attributeName="r" from="2" to="8" dur="1.5s" begin={`${index * 0.25}s`} repeatCount="indefinite" />
+                  <circle cx={point.x} cy={point.y} r="3" fill={lineColor} />
+                  <circle cx={point.x} cy={point.y} r="3" fill={lineColor} opacity="0.5">
+                    <animate attributeName="r" from="3" to="10" dur="1.5s" begin={`${index * 0.25}s`} repeatCount="indefinite" />
                     <animate attributeName="opacity" from="0.5" to="0" dur="1.5s" begin={`${index * 0.25}s`} repeatCount="indefinite" />
                   </circle>
                 </g>
@@ -95,7 +95,7 @@ export default function WorldMap({
             aria-label={`Open ${dot.start.label ?? "visitor"} profile`}
             title={dot.start.label}
             onClick={() => onDotClick(dot.id)}
-            className="absolute z-10 size-10 -translate-x-1/2 -translate-y-1/2 rounded-full outline-none focus-visible:ring-2 focus-visible:ring-green-300"
+            className="absolute z-10 size-11 -translate-x-1/2 -translate-y-1/2 rounded-full outline-none focus-visible:ring-2 focus-visible:ring-green-300"
             style={{ left: `${point.x / 800 * 100}%`, top: `${point.y / 400 * 100}%` }}
           />
         );
