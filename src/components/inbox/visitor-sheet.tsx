@@ -31,6 +31,7 @@ export function VisitorSheet({
   open,
   onClose,
   onAddTag,
+  settingsHref = "/dashboard/settings",
 }: {
   visitor: Visitor;
   /** Conversation tags, when the sheet is opened from a conversation. */
@@ -41,6 +42,8 @@ export function VisitorSheet({
   open: boolean;
   onClose: () => void;
   onAddTag?: (tag: string) => void;
+  /** Where “Manage tags” points; the public demo keeps it inside /demo. */
+  settingsHref?: string;
 }) {
   const reduceMotion = !!useReducedMotion();
   const closeRef = useRef<HTMLButtonElement>(null);
@@ -212,7 +215,7 @@ export function VisitorSheet({
                           )}
                           <div className="mt-1 border-t border-(--obsidian-dashboard-shell-border) pt-1">
                             <Link
-                              href="/dashboard/settings"
+                              href={settingsHref}
                               className="block rounded-md px-2.5 py-1.5 text-[11px] leading-4 text-(--obsidian-dashboard-shell-text-subtle) transition-colors hover:bg-(--obsidian-dashboard-shell-menu-highlight) hover:text-(--obsidian-dashboard-shell-foreground)"
                             >
                               Manage tags in Settings

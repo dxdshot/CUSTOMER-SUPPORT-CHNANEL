@@ -10,7 +10,6 @@ import { useAgentProfile } from "@/lib/agent-profile";
 import {
   conversations as seedConversations,
   conversationStatus,
-  currentAgent,
   type Conversation,
   type ConversationStatus,
   type Message,
@@ -35,11 +34,7 @@ import {
 import { ConversationList } from "./conversation-list";
 import { ConversationThread } from "./conversation-thread";
 import { VisitorSheet } from "./visitor-sheet";
-
-export type InboxTab = "all" | "mine" | "unassigned" | "closed";
-export type InboxSort = "newest" | "oldest" | "unread";
-
-const isClosed = (conversation: Conversation) => conversation.status === "closed";
+import { visibleConversations, type InboxSort, type InboxTab } from "@/lib/inbox";
 
 export function InboxView({
   tab,
@@ -213,27 +208,10 @@ export function InboxView({
     };
   }, []);
 
-  const visible = useMemo(() => {
-    const needle = query.trim().toLowerCase();
-    const list = items.filter((conversation) => {
-      if (tab === "mine" && conversation.assignee !== currentAgent) return false;
-      if (tab === "unassigned" && conversation.assignee !== null) return false;
-      if (tab === "closed" && !isClosed(conversation)) return false;
-      if (tab === "all" && isClosed(conversation)) return false;
-      if (tag !== "all" && !conversation.tags.some((value) => value.toLowerCase() === tag.toLowerCase())) return false;
-      if (needle) {
-        const haystack = `${conversation.visitor.name} ${conversation.visitor.email} ${conversation.lastMessage}`.toLowerCase();
-        if (!haystack.includes(needle)) return false;
-      }
-      return true;
-    });
-
-    return list.sort((a, b) => {
-      if (sort === "oldest") return b.updatedMinutes - a.updatedMinutes;
-      if (sort === "unread") return b.unread - a.unread || a.updatedMinutes - b.updatedMinutes;
-      return a.updatedMinutes - b.updatedMinutes;
-    });
-  }, [items, tab, sort, tag, query]);
+  const visible = useMemo(
+    () => visibleConversations(items, { tab, sort, tag, query }),
+    [items, tab, sort, tag, query],
+  );
 
   // The thread follows the list: if the selected conversation is filtered out, open the first visible one.
   const selected = (requestedId

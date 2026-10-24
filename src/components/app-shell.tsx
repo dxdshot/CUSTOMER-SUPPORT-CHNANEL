@@ -73,7 +73,7 @@ function saveSidebarWidth(width: number) {
   sidebarListeners.forEach((notify) => notify());
 }
 
-const navigation: DashboardShellNavSection[] = [
+const liveNavigation: DashboardShellNavSection[] = [
   {
     id: "main",
     items: [
@@ -86,7 +86,23 @@ const navigation: DashboardShellNavSection[] = [
   },
 ];
 
-type NotificationRow = { id: string; title: string; detail: string; unread: boolean };
+/*
+ * The demo mirrors the live routes under /demo. Settings and widget edits stay
+ * in memory, so a visitor's changes reset on refresh.
+ */
+const demoHref = (href: string) => href.replace(/^\/dashboard/, "/demo");
+const demoNavigation: DashboardShellNavSection[] = liveNavigation.map((section) => ({
+  ...section,
+  items: section.items.map((item) => ({
+    ...item,
+    id: demoHref(item.id),
+    href: item.href ? demoHref(item.href) : undefined,
+  })),
+}));
+
+export type NotificationRow = { id: string; title: string; detail: string; unread: boolean };
+
+const NO_NOTIFICATIONS: NotificationRow[] = [];
 
 export function AppShell({
   title,
@@ -98,6 +114,9 @@ export function AppShell({
   filters,
   toolbarActions,
   children,
+  demo = false,
+  demoUnread = 0,
+  demoNotifications = NO_NOTIFICATIONS,
 }: {
   title: ReactNode;
   status?: string;
@@ -108,13 +127,19 @@ export function AppShell({
   filters?: ReactNode;
   toolbarActions?: ReactNode;
   children: ReactNode;
+  /** Public demo: local data only, no live workspace writes. */
+  demo?: boolean;
+  demoUnread?: number;
+  demoNotifications?: NotificationRow[];
 }) {
   const pathname = usePathname();
   const sidebarWidth = useSyncExternalStore(subscribeSidebarWidth, readSidebarWidth, () => 200);
   const profile = useAgentProfile();
   const [profileReady, setProfileReady] = useState(false);
-  const [unread, setUnread] = useState(0);
-  const [notifications, setNotifications] = useState<NotificationRow[]>([]);
+  const [unread, setUnread] = useState(demo ? demoUnread : 0);
+  const [notifications, setNotifications] = useState<NotificationRow[]>(
+    demo ? demoNotifications : NO_NOTIFICATIONS,
+  );
 
   useEffect(() => {
     let active = true;
@@ -134,13 +159,15 @@ export function AppShell({
   }, []);
 
   useEffect(() => {
+    if (demo) return;
     if (!profileReady || profile.id === "server") return;
     heartbeatAgent(profile);
     const beat = window.setInterval(() => heartbeatAgent(profile), 30_000);
     return () => window.clearInterval(beat);
-  }, [profileReady, profile]);
+  }, [profileReady, profile, demo]);
 
   useEffect(() => {
+    if (demo) return;
     const client = getSupabase();
     if (!client) return;
     let cancelled = false;
@@ -207,12 +234,14 @@ export function AppShell({
       window.clearTimeout(timer);
       void client.removeChannel(channel);
     };
-  }, []);
+  }, [demo]);
 
+  const navigation = demo ? demoNavigation : liveNavigation;
+  const inboxId = demo ? "/demo" : "/dashboard";
   const navigationWithUnread = navigation.map((section) => ({
     ...section,
     items: section.items.map((item) =>
-      item.id === "/dashboard" ? { ...item, count: unread || undefined } : item,
+      item.id === inboxId ? { ...item, count: unread || undefined } : item,
     ),
   }));
 
@@ -268,7 +297,7 @@ export function AppShell({
                     notifications.map((notification) => (
                     <li key={notification.id}>
                       <Link
-                        href={`/dashboard?conversation=${encodeURIComponent(notification.id)}`}
+                        href={demo ? `/demo?conversation=${encodeURIComponent(notification.id)}` : `/dashboard?conversation=${encodeURIComponent(notification.id)}`}
                         className="flex w-full items-start gap-2.5 rounded-md px-2.5 py-2 text-left transition-colors hover:bg-(--obsidian-dashboard-shell-menu-highlight)"
                       >
                         <span
@@ -311,10 +340,10 @@ export function AppShell({
               </DashboardMenuTrigger>
               <DashboardMenuContent align="end" className="min-w-56">
                 <p className="px-2.5 py-1.5 text-xs leading-4 text-(--obsidian-dashboard-shell-text-muted)">
-                  {profile.name} · local profile
+                  {profile.name} · {demo ? "demo mode" : "local profile"}
                 </p>
                 <DashboardMenuItem asChild>
-                  <Link href="/dashboard/settings">Edit profile</Link>
+                  <Link href={demo ? "/demo/settings" : "/dashboard/settings"}>Edit profile</Link>
                 </DashboardMenuItem>
               </DashboardMenuContent>
             </DashboardMenu>

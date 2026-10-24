@@ -40,6 +40,8 @@ export function ConversationThread({
   onAssign,
   onOpenProfile,
   onBack,
+  localUpload = false,
+  cannedResponses,
   className,
 }: {
   conversation: Conversation;
@@ -55,6 +57,10 @@ export function ConversationThread({
   onOpenProfile: () => void;
   /** Small screens show one pane at a time; this returns to the conversation list. */
   onBack?: () => void;
+  /** Demo mode: keep attachments as in-memory blob URLs. */
+  localUpload?: boolean;
+  /** Demo mode: use the in-memory canned list instead of the saved store. */
+  cannedResponses?: CannedResponse[];
   className?: string;
 }) {
   const { visitor, messages, status, typing } = conversation;
@@ -72,7 +78,8 @@ export function ConversationThread({
   const [menuIndex, setMenuIndex] = useState(0);
   const [menuDismissed, setMenuDismissed] = useState(false);
   // The same store the canned responses page writes through, followed live.
-  const canned = useCannedResponses();
+  const storeCanned = useCannedResponses();
+  const canned = cannedResponses ?? storeCanned;
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -125,10 +132,22 @@ export function ConversationThread({
     requestAnimationFrame(resize);
   };
 
-  // Agent attachments upload straight to the public bucket.
+  // Attachments go to the public bucket, or stay as blob URLs in the demo.
   const uploadAttachment = async (file: File) => {
+    if (file.size > 10 * 1024 * 1024) return;
+    const bytes = file.size;
+    const size = bytes < 1024 ? `${bytes} B` : bytes < 1048576 ? `${Math.round(bytes / 1024)} KB` : `${(bytes / 1048576).toFixed(1)} MB`;
+    if (localUpload) {
+      setAttachment({
+        name: file.name,
+        size,
+        kind: file.type.startsWith("image/") ? "image" : "file",
+        url: URL.createObjectURL(file),
+      });
+      return;
+    }
     const supabase = getSupabase();
-    if (!supabase || file.size > 10 * 1024 * 1024) return;
+    if (!supabase) return;
     setUploading(true);
     const safe = file.name.replace(/[^a-zA-Z0-9._-]/g, "_").slice(0, 80);
     const path = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}-${safe}`;
@@ -138,10 +157,9 @@ export function ConversationThread({
     setUploading(false);
     if (error) return;
     const { data } = supabase.storage.from("chat-attachments").getPublicUrl(path);
-    const bytes = file.size;
     setAttachment({
       name: file.name,
-      size: bytes < 1024 ? `${bytes} B` : bytes < 1048576 ? `${Math.round(bytes / 1024)} KB` : `${(bytes / 1048576).toFixed(1)} MB`,
+      size,
       kind: file.type.startsWith("image/") ? "image" : "file",
       url: data.publicUrl,
     });
