@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useSyncExternalStore, type ReactNode } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { Bell, Inbox, MessageCircle, Settings, Users, Zap } from "lucide-react";
 import {
   DashboardButton,
@@ -133,6 +133,7 @@ export function AppShell({
   demoNotifications?: NotificationRow[];
 }) {
   const pathname = usePathname();
+  const router = useRouter();
   const sidebarWidth = useSyncExternalStore(subscribeSidebarWidth, readSidebarWidth, () => 200);
   const profile = useAgentProfile();
   const [profileReady, setProfileReady] = useState(false);
@@ -245,6 +246,11 @@ export function AppShell({
     ),
   }));
 
+  const signOut = async () => {
+    await fetch("/api/auth/logout", { method: "POST" }).catch(() => undefined);
+    router.replace("/login");
+  };
+
   return (
     <div className="h-dvh">
       <DashboardShell
@@ -345,6 +351,9 @@ export function AppShell({
                 <DashboardMenuItem asChild>
                   <Link href={demo ? "/demo/settings" : "/dashboard/settings"}>Edit profile</Link>
                 </DashboardMenuItem>
+                {!demo && (
+                  <DashboardMenuItem onSelect={() => void signOut()}>Sign out</DashboardMenuItem>
+                )}
               </DashboardMenuContent>
             </DashboardMenu>
           </>

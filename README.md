@@ -23,11 +23,16 @@ pnpm dev
 Add your Supabase values to `.env.local`, then run `supabase/schema.sql` in the Supabase
 SQL editor. Open the dashboard at the address printed by `pnpm dev`.
 
+The live dashboard at `/dashboard` asks for `DASHBOARD_PASSWORD`. The public demo at
+`/demo` stays open and uses local mock data.
+
 ```env
 NEXT_PUBLIC_SUPABASE_URL=
 NEXT_PUBLIC_SUPABASE_ANON_KEY=
 SUPABASE_SERVICE_ROLE_KEY=
 NEXT_PUBLIC_WIDGET_ORIGIN=https://support-widget-six.vercel.app
+DASHBOARD_PASSWORD=
+DASHBOARD_AUTH_SECRET=
 ```
 
 Copy the install snippet from the dashboard's Widget page, or use the deployed host
@@ -56,5 +61,7 @@ pnpm verify:widget
 pnpm build
 ```
 
-The included Supabase policies support local demos. Tighten access policies and add agent
-authentication before a production deployment.
+The included Supabase policies are wide open for local demos. The dashboard password gate
+keeps the UI private, but the public anon key can still reach Supabase directly. Move to
+Supabase Auth with authenticated RLS policies before treating the conversation data as
+private.
